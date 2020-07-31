@@ -374,22 +374,23 @@ public class Solution {
      * 令x' = 0, 1 - ln(x) = 0, e = 2.7
      * x = 3 最大, x = 2次子, x = 1最差
      */
-    public int integerBreak(int n){
+    public int integerBreak(int n) {
         //当n<=3时，丢弃一个因子，返还n-1
-        if(n<=3){
-            return n-1;
+        if (n <= 3) {
+            return n - 1;
         }
         //当n>3时，得到商a和余数b, n = 3a + b
-        int a = n/3, b = n%3;
+        int a = n / 3, b = n % 3;
         //当b为0时，直接返还3^a即可
-        if(b==0){
+        if (b == 0) {
             return (int) Math.pow(3, a);
         }
         //当b为1时，要将最后一个1+3 转换成 2+2, n = 3^(a-1)*4
-        if(b==1){
-            return (int) Math.pow(3, a-1) * 4;
+        if (b == 1) {
+            return (int) Math.pow(3, a - 1) * 4;
         }
         //当b为2时，n = 3^a * 2, 因为2为第二选择, 不需要拆分成1+1
         return (int) Math.pow(3, a) * 2;
     }
+
 }
