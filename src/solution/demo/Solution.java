@@ -1,13 +1,37 @@
-import javafx.util.Pair;
-import org.omg.CORBA.CODESET_INCOMPATIBLE;
-import sun.awt.image.ImageWatched;
-import sun.reflect.generics.tree.Tree;
-
-import javax.swing.tree.TreeNode;
+package solution.demo;
 import java.util.*;
 
 public class Solution {
+    /**
+     * Basic Struct
+     */
+    public class TreeNode {
+        int val;
+        TreeNode left;
+        TreeNode right;
 
+        TreeNode(int x) {
+            val = x;
+        }
+    }
+    public class ListNode{
+        int val;
+        ListNode next;
+
+        ListNode(int val){
+            this.val = val;
+        }
+    }
+    public class TreeLinkNode{
+        int val;
+        TreeLinkNode left = null;
+        TreeLinkNode right = null;
+        TreeLinkNode parent = null;
+
+        TreeLinkNode(int val){
+            this.val = val;
+        }
+    }
 
     // leetCode 910
     class StockSpanner {
@@ -206,16 +230,6 @@ public class Solution {
      * LeetCode 104
      * Level: Easy
      */
-    public class TreeNode {
-        int val;
-        TreeNode left;
-        TreeNode right;
-
-        TreeNode(int x) {
-            val = x;
-        }
-    }
-
     public int maxDepth(TreeNode root) {
         return TreeDepth(root);
     }
@@ -392,5 +406,202 @@ public class Solution {
         //当b为2时，n = 3^a * 2, 因为2为第二选择, 不需要拆分成1+1
         return (int) Math.pow(3, a) * 2;
     }
-
+    /**
+     * LeetCode 704, 二分查找
+     * Level: Easy
+     */
+    public int search(int[] nums, int target){
+        int left = 0;
+        int right = nums.length-1;
+        while(left<=right){
+            int mid = (right-left)/2 + left;
+            if(nums[mid]==target) {
+                return mid;
+            }else if(nums[mid]<target){
+                left = mid+1;
+            }else{
+                right = mid-1;
+            }
+        }
+        return -1;
+    }
+    /**
+     * LeetCode -, 魔术索引
+     * Level: Easy
+     */
+    public int findMagicIndex(int[] nums){
+        if(nums==null || nums.length==0){
+            return -1;
+        }
+        for(int i=0;i< nums.length;i++){
+            if(nums[i]==i){
+                return i;
+            }
+        }
+        return -1;
+    }
+    /**
+     * 对称二叉树，与此树的镜像相同就是对称的，也就是说从根节点开始如果左右子树不等就是
+     */
+    public boolean isSymmetrical(TreeNode pRoot){
+       //base case: empty tree is symmetrical
+        if (pRoot==null){
+            return true;
+        }
+        //we need two queues to traverse left and right
+        LinkedList<TreeNode> leftTree = new LinkedList<>();
+        LinkedList<TreeNode> rightTree = new LinkedList<>();
+        leftTree.add(pRoot);
+        rightTree.add(pRoot);
+        while(!leftTree.isEmpty() && !rightTree.isEmpty()){
+            TreeNode tempOne = leftTree.poll();
+            TreeNode tempTwo = rightTree.poll();
+            //three cases
+            if(tempOne==null && tempTwo==null){
+                continue;
+            }
+            if (tempOne==null || tempTwo==null){
+                return false;
+            }
+            if(tempOne.val != tempTwo.val){
+                return false;
+            }
+            //traverse
+            leftTree.add(tempOne.left);
+            rightTree.add(tempTwo.right);
+            //opposite direction
+            leftTree.add(tempOne.right);
+            rightTree.add(tempTwo.left);
+        }
+        return true;
+    }
+    /**
+     * 二叉树的下一个节点，给定一个节点，以中序遍历的顺序返回下一个节点，注：这棵树的节点除了有左右子节点还有指向父节点的指针
+     *                  A
+     *          B               C
+     *     D        E       F       G
+     *          H       I
+     * 中序顺序: D, B, H, E, I, A, F, C, G
+     */
+    public TreeLinkNode GetNext(TreeLinkNode pNode){
+        //case one:当前节点有右子树，下一个系欸但就是右子树的最左节点；例如B，下一个节点为H
+        if(pNode.right!=null){
+            TreeLinkNode pRight = pNode.right;
+            while(pRight.left!=null){
+                pRight = pRight.left;
+            }
+            return pRight;
+        }
+        //case two:当前节点没有右子树，且该节点在父节点的左子树，则下一个节点就是该父节点；例如H，下一个节点为E
+        if(pNode.parent!=null && pNode.parent.left==pNode){
+            return pNode.parent;
+        }
+        //case three:当前节点没有右子树，且该节点在其父节点的右子树，则我们一直沿着父节点回溯，直到找到某节点，如果其父节点在这个节点的左子树上，那么下一个节点就是这个节点；例如I，下一个节点为A
+        //如果不是则为空，因为当前节点是其父节点的最右边且父节点是某节点的最右边，因此再没有其他节点会在该节点后面；例如G，下一个节点为null
+        if(pNode.parent!=null){
+            TreeLinkNode pParent = pNode.parent;
+            while(pParent.parent!=null && pParent.parent.right==pParent){
+                pParent = pParent.parent;
+            }
+            return pParent.parent;
+        }
+        return null;
+    }
+    /**
+     * 猿辅导2020第一次笔试，参考：LeetCode 253, 求最少需要多少个会议室
+     * 首先对每个课程的起始时间进行排序，使用最小堆维护当前课程的结束时间
+     * 当新的课程出现。我们需要判断新的课程是否与前面的课程时间重叠,记录最小堆的历史最大size即可
+     */
+    public int minK(List<int[]> list){
+        //排序
+        list.sort((o1, o2) -> o1[0]-o2[0]);
+        PriorityQueue<Integer> minHeap = new PriorityQueue<>();
+        int res = 0;
+        for (int[] ints : list) {
+            if(!minHeap.isEmpty() && minHeap.peek()<=ints[0]){
+                minHeap.poll();
+            }
+            minHeap.add(ints[1]);
+            res = Math.max(res, minHeap.size());
+        }
+        return res;
+    }
+    /**
+     * 多多鸡有N个魔术盒子（编号1～N），其中编号为i的盒子里有i个球。
+     * 多多鸡让皮皮虾每次选择一个数字X（1 <= X <= N），多多鸡就会把球数量大于等于X个的盒子里的球减少X个。
+     * 通过观察，皮皮虾已经掌握了其中的奥秘，并且发现只要通过一定的操作顺序，可以用最少的次数将所有盒子里的球变没。
+     * 那么请问聪明的你，是否已经知道了应该如何操作呢？
+     */
+    public int minTimes(int n){
+        //当仅有1个盒子时，只需操作1次
+        if(n==1){
+            return 1;
+        }
+        //当有2个盒子时，需要两次操作才能清空，因为第2个盒子会比第一个多1个球
+        if(n==2){
+            return 2;
+        }
+        //我们每次都从队列中挑选出中止，这样前后的盒子里的球就会相同，所以相当于将所有盒子2分，所以每次二分就是一次操作
+        return 1+minTimes(n/2);
+    }
+    /**
+     * 多多鸡打算造一本自己的电子字典，里面的所有单词都只由a和b组成。
+     * 每个单词的组成里a的数量不能超过N个且b的数量不能超过M个。
+     * 多多鸡的幸运数字是K，它打算把所有满足条件的单词里的字典序第K小的单词找出来，作为字典的封面。
+     */
+    public int topK(int n, int m, int k){
+        return 0;
+    }
+    /**
+     * LeetCode 114, 二叉树展开为链表
+     * Level: medium
+     */
+    public void flatten(TreeNode root){
+        if(root==null){
+            return;
+        }
+        while (root!=null){
+            if(root.left==null){
+                root = root.right;
+            }else{
+                //找到左子树的最右节点
+                TreeNode pre = root.left;
+                while (pre.right!=null){
+                    pre = pre.right;
+                }
+                pre.right = root.right;
+                root.right = root.left;
+                root.left = null;
+                root = root.right;
+            }
+        }
+    }
+    /**
+     * 删除链表中重复的节点，所有重复的节点都不保留
+     */
+    public ListNode deleteDuplication(ListNode pHead)
+    {
+        if(pHead==null || pHead.next==null){
+            return pHead;
+        }
+        ListNode dummy = new ListNode(0);
+        dummy.next = pHead;
+        ListNode pre = dummy;
+        ListNode last = dummy.next;
+        while(last!=null){
+            //不是tie的重复节点
+            if(last.next!=null && last.val == last.next.val){
+                //找到最后一个相同节点
+                while(last.next!=null && last.val == last.next.val){
+                    last = last.next;
+                }
+                pre.next = last.next;
+                last = last.next;
+            }else{
+                pre = pre.next;
+                last = last.next;
+            }
+        }
+        return dummy.next;
+    }
 }
