@@ -3,130 +3,61 @@ package solution.demo;
 import java.util.*;
 
 public class RealSolution {
-//    public static void main(String[] args){
-//        Scanner sc = new Scanner(System.in);
-//        while (sc.hasNext()){
-//            int k = sc.nextInt();
-//            int n = sc.nextInt();
-//            int[] box = new int[n];
-//            for(int i=0;i<n;i++){
-//                box[i] = sc.nextInt();
-//            }
-//            int dis = k;
-//            int backSteps = 0;
-//            for(int i=0;i<n;i++){
-//                if(dis==box[i]){
-//                    System.out.println("paradox");
-//                    return;
-//                }else if(dis>box[i]){
-//                    dis -= box[i];
-//                }else{
-//                    dis = k - (box[i]-dis);
-//                    backSteps++;
-//                }
-//            }
-//            System.out.println(dis + " " + backSteps);
-//        }
-//    }
-
-    public static class box{
-        int upSide;
-        int downSide;
-        int leftSide;
-        int rightSide;
-        int topSide;
-        int bottomSide;
-
-        box(int upSide, int downSide, int leftSide, int rightSide, int topSide, int bottomSide){
-            this.upSide = upSide;
-            this.downSide = downSide;
-            this.leftSide = leftSide;
-            this.rightSide = rightSide;
-            this.topSide = topSide;
-            this.bottomSide = bottomSide;
-        }
-    }
-//    public static void main(String[] args){
-//        Scanner sc = new Scanner(System.in);
-//        while (sc.hasNext()){
-//            int n = sc.nextInt();
-//            List<box> boxes = new ArrayList<>();
-//            for(int i=0;i<n;i++){
-//                boxes.add(new box(sc.nextInt(), sc.nextInt(), sc.nextInt(), sc.nextInt(), sc.nextInt(), sc.nextInt()));
-//            }
-//            HashMap<>
-//
-//        }
-//    }
-    public static class Daymeal{
-        int cal;
-        int deal;
-
-        Daymeal(int cal, int deal){
-            this.cal = cal;
-            this.deal = deal;
-        }
-    }
-    public static class Nightmeal{
-        int cal;
-        int deal;
-
-        Nightmeal(int cal, int deal){
-            this.cal = cal;
-            this.deal = deal;
-        }
-    }
-    public static void main(String[] args){
+    public static List<int[]> houseList;
+    public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-        while (sc.hasNext()){
+        while (sc.hasNext()) {
             int n = sc.nextInt();
             int m = sc.nextInt();
-            int t = sc.nextInt();
-            List<Daymeal> DM = new ArrayList<>();
-            List<Nightmeal> NM = new ArrayList<>();
+
+            int[] coins = new int[n];
             for(int i=0;i<n;i++){
-                DM.add(new Daymeal(sc.nextInt(), sc.nextInt()));
+                coins[i] = sc.nextInt();
             }
+            houseList = new ArrayList<>();
             for(int i=0;i<m;i++){
-                NM.add(new Nightmeal(sc.nextInt(), sc.nextInt()));
+                houseList.add(new int[]{sc.nextInt(), sc.nextInt()});
             }
-            DM.sort(Comparator.comparingInt(o -> o.cal));
-            NM.sort((Comparator.comparingInt(o -> o.cal)));
-            //遍历中餐
-            if(t==0){
-                System.out.println(0);
-            }
-            int meals = Integer.MAX_VALUE;
-            for(Daymeal dm:DM){
-                if(dm.deal>=t){
-                    meals = Math.min(meals, dm.cal);
-                    break;
-                }else{
-                    meals = Math.min(meals, dm.cal+track(NM, t-dm.deal));
+            houseList.sort(new Comparator<int[]>() {
+                @Override
+                public int compare(int[] o1, int[] o2) {
+                    return o2[0] - o1[0];
                 }
+            });
+
+            //do[i]：在i个人的时候最大舒适值
+            int[] dp = new int[n+1];
+            dp[0] = maxConfort(coins[0]);
+            for(int i=1;i<=n;i++){
+                dp[i] = dp[i-1] + maxConfort(coins[i]);
             }
-            if(meals<0){
-                System.out.println(-1);
-                return;
-            }
-            System.out.println(meals);
+            System.out.println(dp[n]);
         }
     }
-    public static int track(List<Nightmeal> meals, int deals){
-        int res = Integer.MAX_VALUE;
-        int count = 0;
-        for(Nightmeal temp:meals){
-            if(temp.deal>=deals) {
-                res = Math.min(res, temp.cal);
+
+    public static int maxConfort(int coin){
+        int maxConfort = 0;
+        for(int[] house: houseList){
+            if(house[0]==0){
+                continue;
+            }
+            if(coin>=house[1]){
+                maxConfort = house[0];
+                //选择后无效化处理
+                house[0] = 0;
                 break;
             }
-            else{
-                count++;
-            }
         }
-        if(count>=meals.size()){
-            return Integer.MIN_VALUE;
-        }
-        return res;
+        return maxConfort;
     }
+//    public static void main(String[] args){
+//        Scanner sc = new Scanner(System.in);
+//        while(sc.hasNext()){
+//            String t = sc.nextLine();
+//            int aCount = 0, cCount=0, eCount=0, bCount=0, dCount=0, fCount=0;
+//            int leftPtr = 0;
+//            int rightPtr = 0;
+//            while(ri)
+//        }
+//    }
 }

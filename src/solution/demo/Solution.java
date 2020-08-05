@@ -604,4 +604,219 @@ public class Solution {
         }
         return dummy.next;
     }
+    /**
+     * LeetCode 164, 最大间距
+     * Level: Hard
+     */
+    //方法1：比较排序，复杂度难以突破O(nlogn)
+    public int maximumGapOne(int[] nums){
+        if(nums.length<2){
+            return 0;
+        }
+        PriorityQueue<Integer> minHeap = new PriorityQueue<>();
+        for(int num: nums){
+            minHeap.add(num);
+        }
+        int max = Integer.MIN_VALUE;
+        int num = minHeap.poll();
+        while (!minHeap.isEmpty()){
+            max = Math.max(max, Math.abs(num-minHeap.peek()));
+            num = minHeap.poll();
+        }
+        return max;
+    }
+    //方法2桶排序，复杂度O(n)，在桶排序中，每个桶的区间长度一般都是一样的，比如说给定数组 [1,5,7,10]，
+    // 这里如果我们分 10 个桶，那么每个桶的区间长度就是 1，等同于每个桶其实就对应一个数，如果这里我们分 1 个桶，
+    // 那么这个桶的区间范围就是 1 ~ 10，当然这里我给的两个例子都是极端的例子，在实际应用上我们应该结合实际情况合理分配桶。
+    //构建桶结构
+    private class Bucket{
+        int min = Integer.MAX_VALUE;
+        int max = Integer.MIN_VALUE;
+    }
+    public int maximumGapTwo(int[] nums){
+        //base case
+        if(nums==null || nums.length<2){
+            return 0;
+        }
+        int min = Integer.MAX_VALUE;
+        int max = Integer.MIN_VALUE;
+        for(int num:nums){
+            min = Math.min(min, num);
+            max = Math.max(max, num);
+        }
+        //如何分配桶的长度与个数是关键
+        //在n个数下，形成的区间是n-1，例如[2,4,6,8]
+        //这里有4个数，但是只有3个区间，[2,4], [4,6], [6,8]
+        //因此，桶长度 = 区间长度/区间个数 = (max - min) / (nums.length - 1)
+        int bucketSize = Math.max(1, (max-min)/(nums.length-1));
+
+        // 上面得到了桶的长度，我们就可以以此来确定桶的个数
+        // 桶个数 = 区间长度 / 桶长度
+        // 这里考虑到实现的方便，多加了一个桶，为什么？
+        // 还是举上面的例子，[2,4,6,8], 桶的长度 = (8 - 2) / (4 - 1) = 2
+        //                           桶的个数 = (8 - 2) / 2 = 3
+        // 已知一个元素，需要定位到桶的时候，一般是 (当前元素 - 最小值) / 桶长度
+        // 这里其实利用了整数除不尽向下取整的性质
+        // 但是上面的例子，如果当前元素是 8 的话 (8 - 2) / 2 = 3，对应到 3 号桶
+        //              如果当前元素是 2 的话 (2 - 2) / 2 = 0，对应到 0 号桶
+        // 你会发现我们有 0,1,2,3 号桶，实际用到的桶是 4 个，而不是 3 个
+        // 透过例子应该很好理解，但是如果要说根本原因，其实是开闭区间的问题
+        // 这里其实 0,1,2 号桶对应的区间是 [2,4),[4,6),[6,8)
+        // 那 8 怎么办？多加一个桶呗，3 号桶对应区间 [8,10)
+        Bucket[] buckets = new Bucket[(max - min) / bucketSize + 1];
+
+        //对桶进行填充，插入桶的时候，我们就已经在排序了，一部分数字进了相同的桶，直接通过max,min对比
+        for (int num : nums) {
+            int temp = (num - min) / bucketSize;
+
+            if (buckets[temp] == null) {
+                buckets[temp] = new Bucket();
+            }
+            buckets[temp].min = Math.min(buckets[temp].min, num);
+            buckets[temp].max = Math.max(buckets[temp].max, num);
+        }
+        //另一部分数字不在相同的桶，我们通过比较相邻的桶即可
+        int previousMax = Integer.MAX_VALUE; int maxGap = Integer.MIN_VALUE;
+        for (Bucket bucket : buckets) {
+            if (bucket != null && previousMax != Integer.MAX_VALUE) {
+                maxGap = Math.max(maxGap, bucket.min - previousMax);
+            }
+            if (bucket != null) {
+                previousMax = bucket.max;
+                maxGap = Math.max(maxGap, bucket.max - bucket.min);
+            }
+        }
+        return maxGap;
+    }
+    /**
+     * LeetCode 415, 字符串相加
+     * Level: Easy
+     */
+     public String addString(String num1, String num2){
+         if(num1==null && num2==null){
+             return new String("0");
+         }
+         else if(num1==null){
+             return num2;
+         }else if(num2==null){
+             return num1;
+         }else{
+             int num1Ptr = num1.length()-1;
+             int num2Ptr = num2.length()-1;
+             int up = 0;
+             StringBuffer sb = new StringBuffer();
+             while(num1Ptr>=0 || num2Ptr>=0 || up!=0){
+                 int x = num1Ptr>=0? num1.charAt(num1Ptr) - 48: 0;
+                 int y = num2Ptr>=0? num2.charAt(num2Ptr) - 48: 0;
+                 int res = x+y+up;
+                 //如果超过10，取余
+                 sb.append(res%10);
+                 up = res/10;
+                 num1Ptr--;
+                 num2Ptr--;
+             }
+             sb.reverse();
+             return sb.toString();
+         }
+     }
+     /**
+      * LeetCode 124, 二叉树中的最大路径和
+      * Level: Hard
+     */
+     public int maxPathSum = Integer.MIN_VALUE;
+     public int maxPathSum(TreeNode root){
+         maxGrain(root);
+         return maxPathSum;
+     }
+     public int maxGrain(TreeNode node){
+         //base case
+         if(node==null){
+             return 0;
+         }
+         //递归取得左右子树的最大路径和，如果出现负数节点，直接ignore
+         int leftGain = Math.max(0, maxGrain(node.left));
+         int rightGain = Math.max(0, maxGrain(node.right));
+         //update
+         maxPathSum = Math.max(maxPathSum, node.val+leftGain+rightGain);
+         //作为路径只能返回左右子树的一个
+         return node.val + Math.max(leftGain, rightGain);
+     }
+    /**
+     * LeetCode 53, 最大子序和
+     * Level: Easy
+     * dp[i]表示以i结尾的子串的最大值
+     * 例如第一个数字结尾的连续序列，[-2], 最大值：-2
+     * 第二个数字结尾的连续序列，[-2,1], [1], 最大值：1
+     * 第三个数字结尾的连续序列，[-2,1,3], [1,3], [3], 最大值:3
+     * 每次向后增加一位，就在上一级的每个子序列里都加入新的数字，并且新增一个当前数字的子序列。如果上一级是负数，现在的数无论正负，都是数字自己本身更大，而如果上一级是正的，那么一定是上一级最优子序列+现在的数字最优
+     * if(dp[i-1])>0? dp[i] = dp[i-1] + nums[i]： dp[i] = nums[i]
+     */
+    public int maxSubArray(int[] nums){
+        int len = nums.length;
+        if (len==0){
+            return 0;
+        }
+        int[] dp = new int[len];
+        dp[0] = nums[0];
+        for(int i=1;i<len;i++){
+            if(dp[i-1]>0){
+                dp[i] = dp[i-1] + nums[i];
+            }else{
+                dp[i] = nums[i];
+            }
+        }
+        //遍历寻找最大值
+        int maxSum = Integer.MIN_VALUE;
+        for(int num:dp){
+            maxSum = Math.max(maxSum, num);
+        }
+        return maxSum;
+    }
+    /**
+     * LeetCode 141, 环形链表
+     * Level: Easy
+     */
+    public boolean hasCycle(ListNode head){
+        //base case
+        if (head==null){
+            return false;
+        }
+        ListNode fast = head.next;
+        ListNode slow = head;
+        while (slow!=fast){
+            if (fast==null || fast.next==null){
+                return false;
+            }
+            slow = slow.next;
+            fast = fast.next.next;
+        }
+        return true;
+    }
+    /**
+     * leetCode 337, 打家劫舍III
+     * Level: Medium
+     * 思路：首先每个节点都有偷/不偷两个状态，并且父节点偷，两个子节点就不能偷，如果父节点不偷，那么两个子节点可以选择偷或者不偷
+     * 0代表该节点不偷，1代表偷
+     * res[0] = Math.max(Math.max(left[0],left[1]), Math.max(right[0),right[1))
+     * res[1] = node.val + left[0] + right[0]
+     */
+    public int rob(TreeNode root){
+        int[] ans = robTrack(root);
+        return Math.max(ans[0], ans[1]);
+    }
+    public int[] robTrack(TreeNode node){
+        if(node==null){
+            return new int[2];
+        }
+        //每个节点保存偷/不偷两种状态
+        int[] res = new int[2];
+        //递归
+        int[] left = robTrack(node.left);
+        int[] right = robTrack(node.right);
+        //当父节点不偷, 左右子节点可以选择偷/不偷
+        res[0] = Math.max(left[0],left[1]) + Math.max(right[0],right[1]);
+        //当父节点偷，那么左右子节点都不能偷
+        res[1] = node.val + left[0] + right[0];
+        return res;
+    }
 }
