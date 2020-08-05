@@ -819,4 +819,173 @@ public class Solution {
         res[1] = node.val + left[0] + right[0];
         return res;
     }
+    /**
+     * LeetCode 300, 最长上升子序列
+     * Level: Medium
+     */
+    //方法1：dp[i]表示前i给数字的最长上升序列长度，复杂度: O(n^2)
+    public int lengthOfLISOne(int[] nums){
+        int len = nums.length;
+        //dp[i]: 前i个数字的最长升序子序列长度、
+        int[] dp = new int[len];
+        //因为数字本身也是长度的一部分
+        int maxLen = 0;
+        Arrays.fill(dp,1);
+        for(int i=0;i<len;i++){
+            //从后向前遍历
+            for(int j=0;j<i;j++){
+                if(nums[j]<nums[i]){
+                    dp[i] = Math.max(dp[i], dp[j]+1);
+                }
+            }
+            maxLen = Math.max(maxLen, dp[i]);
+        }
+        return  maxLen;
+    }
+    //方法2, 贪婪+二分查找，
+    //https://leetcode-cn.com/problems/longest-increasing-subsequence/solution/dong-tai-gui-hua-er-fen-cha-zhao-tan-xin-suan-fa-p/
+    public int lengthOfLIS(int[] nums) {
+        int len = nums.length;
+        if (len <= 1) {
+            return len;
+        }
+        // tail 数组的定义：长度为 i + 1 的上升子序列的末尾最小是几
+        int[] tail = new int[len];
+        // 遍历第 1 个数，直接放在有序数组 tail 的开头
+        tail[0] = nums[0];
+        // end 表示有序数组 tail 的最后一个已经赋值元素的索引
+        int end = 0;
+
+        for (int i = 1; i < len; i++) {
+            // 【逻辑 1】比 tail 数组实际有效的末尾的那个元素还大
+            if (nums[i] > tail[end]) {
+                // 直接添加在那个元素的后面，所以 end 先加 1
+                end++;
+                tail[end] = nums[i];
+            } else {
+                // 使用二分查找法，在有序数组 tail 中
+                // 找到第 1 个大于等于 nums[i] 的元素，尝试让那个元素更小
+                int left = 0;
+                int right = end;
+                while (left < right) {
+                    // 选左中位数不是偶然，而是有原因的，原因请见 LeetCode 第 35 题题解
+                    // int mid = left + (right - left) / 2;
+                    int mid = left + ((right - left) >>> 1);
+                    if (tail[mid] < nums[i]) {
+                        // 中位数肯定不是要找的数，把它写在分支的前面
+                        left = mid + 1;
+                    } else {
+                        right = mid;
+                    }
+                }
+                // 走到这里是因为 【逻辑 1】 的反面，因此一定能找到第 1 个大于等于 nums[i] 的元素
+                // 因此，无需再单独判断
+                tail[left] = nums[i];
+            }
+            // 调试方法
+            // printArray(nums[i], tail);
+        }
+        // 此时 end 是有序数组 tail 最后一个元素的索引
+        // 题目要求返回的是长度，因此 +1 后返回
+        end++;
+        return end;
+    }
+    /**
+     * 牛客网 字符串统计
+     * 输入一个字符串，以出现次数由高到低的输出，如果出现次数相同按照ASCII的顺序打印
+     * 因为ASCII一共只有256个字符，因此可以通过 int[256] 来捕捉位置
+     */
+    public void printASICC(String str){
+        //pos捕捉字符，value记录出现次数
+        int[] count = new int[256];
+        int max = 0;
+        for(int i=0;i<str.length();i++){
+            count[str.charAt(i)]++;
+            max = Math.max(max, count[str.charAt(i)]);
+        }
+        //循环由高到低打印，最后按照ASCII顺序打印
+        while (max!=0){
+            for(int i=0;i<256;i++){
+                if(count[i]==max){
+                    System.out.print((char)(i));
+                }
+            }
+            max--;
+        }
+        System.out.println();
+    }
+    /**
+     * LeetCode 110，平衡二叉树
+     * Level: Easy
+     */
+    public boolean isBalanced(TreeNode root){
+        //base case
+        if(root==null || (root.left==null && root.right==null)){
+            return true;
+        }
+        int leftDepth = Depth(root.left);
+        int rightDepth = Depth(root.right);
+        //如果完全平衡，直接返回
+        if(Math.abs(leftDepth - rightDepth) < 1){
+            return true;
+        }
+        //如果不完全平衡，需要确定每一个子树都是平衡的才行
+        return isBalanced(root.left) && isBalanced(root.right);
+    }
+    //获取子树最大深度
+    public int Depth(TreeNode node){
+        if(node==null){
+            return 0;
+        }
+        return Math.max(Depth(node.left), Depth(node.right))+1;
+    }
+    /**
+     * LeetCode 130，被围绕的区域
+     * Level：Medium
+     * BFS
+     */
+    public void solve(char[][] board){
+        if (board==null || board.length==0){
+            return;
+        }
+        int rows = board.length;
+        int cols = board[0].length;
+        //通过bfs将联通的O全部先转换为T
+        for (int col=0;col<cols;col++){
+            bfs(board, 0, col);
+            bfs(board,rows-1,col);
+        }
+        for(int row=0;row<rows;row++){
+            bfs(board,row,0);
+            bfs(board,row,cols-1);
+        }
+        //将不满足条件的O全部转换成X
+        for(int i=0;i<rows;i++){
+            for(int j=0;j<cols;j++){
+                if(board[i][j]=='O'){
+                    board[i][j] = 'X';
+                }
+            }
+        }
+        //再把被标记为T的部分转换回O
+        for(int i=0;i<rows;i++){
+            for(int j=0;j<cols;j++){
+                if(board[i][j]=='T'){
+                    board[i][j] = 'O';
+                }
+            }
+        }
+    }
+    public void bfs(char[][] board, int row, int col){
+        //判断边界，满足条件就可以bfs继续搜索
+        if(row>=0 && row<board.length && col>=0 && col< board[0].length && board[row][col]=='O'){
+            board[row][col] = 'T';
+            bfs(board, row+1, col);
+            bfs(board, row-1, col);
+            bfs(board, row, col+1);
+            bfs(board, row, col-1);
+        }else{
+            return;
+        }
+    }
 }
