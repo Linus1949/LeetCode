@@ -1165,30 +1165,30 @@ public class Solution {
      * LeetCode 100, 相同的树
      * Level：Easy
      */
-    public boolean isSameTree(TreeNode p, TreeNode q){
-        if (p==null && q==null){
+    public boolean isSameTree(TreeNode p, TreeNode q) {
+        if (p == null && q == null) {
             return true;
         }
-        if(p==null || q==null){
+        if (p == null || q == null) {
             return false;
         }
         LinkedList<TreeNode> stackP = new LinkedList<>();
         LinkedList<TreeNode> stackQ = new LinkedList<>();
         stackP.addFirst(p);
         stackQ.addFirst(q);
-        while(!stackP.isEmpty() && !stackQ.isEmpty()){
+        while (!stackP.isEmpty() && !stackQ.isEmpty()) {
             TreeNode tempP = stackP.removeFirst();
             TreeNode tempQ = stackQ.removeFirst();
 
-            if(tempP.val!=tempQ.val){
+            if (tempP.val != tempQ.val) {
                 return false;
             }
 
-            if(tempP.left!=null && tempQ.left!=null){
+            if (tempP.left != null && tempQ.left != null) {
                 stackP.addFirst(tempP.left);
                 stackQ.addFirst(tempQ.left);
             }
-            if(tempP.right!=null && tempQ.right!=null){
+            if (tempP.right != null && tempQ.right != null) {
                 stackP.addFirst(tempP.right);
                 stackQ.addFirst(tempQ.right);
             }
