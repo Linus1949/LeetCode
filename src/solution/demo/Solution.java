@@ -1,5 +1,7 @@
 package solution.demo;
+import javafx.util.Pair;
 import java.util.*;
+
 
 public class Solution {
     /**
@@ -984,8 +986,213 @@ public class Solution {
             bfs(board, row-1, col);
             bfs(board, row, col+1);
             bfs(board, row, col-1);
-        }else{
-            return;
         }
+    }
+    /**
+     * LeetCode 336, 回文对
+     * Level: Hard
+     * 假设有两个字符串，判断s1+s2是否为回文字符串，有以下三种case
+     * 1. len1 == len2, 判断s1是否为s2翻转即可
+     * 2. len1 > len2, 将s1分成t1和t2，判断t1是s2的翻转，那么t2是一个回文字符串
+     * 3. len1 < len2, 将s2分成t1和t2, 判断t2是s1的翻转，那么t1是一个回文字符串
+     * 因此我们需要枚举每一个字符串k, 注意空字符串也是回文字符串，我们使用字典树来
+     * 辅助进行翻转判断
+     */
+    //我们可以使用哈希表存储所有字符串的翻转串。在进行查询时，我们判断带查询串的子串是否在哈希表中出现，就等价于判断了其翻转是否存在。
+    List<String> wordsRev = new ArrayList<>();
+    HashMap<String, Integer> indicate = new HashMap<>();
+    public List<List<Integer>> palindromePairs(String[] words){
+        int len = words.length;
+        //将单词翻转储存，方便回文配对
+        for(String word:words){
+            wordsRev.add(new StringBuffer(word).reverse().toString());
+        }
+        //将翻转好的单词与他们在原始数组中的位置绑定
+        for(int i=0;i<len;i++){
+            indicate.put(wordsRev.get(i),i);
+        }
+        List<List<Integer>> res = new ArrayList<>();
+        //遍历每个单词
+        for(int i=0;i<len;i++){
+            String word = words[i];
+            int wordLen = word.length();
+            if(wordLen==0){
+                continue;
+            }
+            //将每个单词都遍历所有的substring,当单词不一样时，需要切分成t1,t2两部分
+            //分别尝试是否可以单独与其他单词进行回文匹配
+            for(int j=0;j<=wordLen;j++){
+                //将单词切成j到wordLen-1的t2
+                if(isPalindrome(word,j,wordLen-1)){
+                    //获取与t2能组合的单词id
+                    int leftId = findWord(word,0,j-1);
+                    //排除没找到和找到的是自己本身的情况
+                    if(leftId!=-1 && leftId!=i){
+                        res.add(Arrays.asList(i,leftId));
+                    }
+                }
+                //将单词切成从0到j的t1
+                if(j!=0 && isPalindrome(word,0,j-1)){
+                    //获取与t1能组合的单词
+                    int rightId = findWord(word,j,wordLen-1);
+                    //排除没找找到和找到的是自己本身的情况
+                    if(rightId!=-1 && rightId!=i){
+                        res.add(Arrays.asList(rightId,i));
+                    }
+                }
+            }
+        }
+        return res;
+    }
+    //判断是否是一串回文字符串
+    public boolean isPalindrome(String word, int left, int right){
+        int len = right - left + 1;
+        for(int i=0;i<len;i++){
+            if(word.charAt(left+i)!=word.charAt(right-i)){
+                return false;
+            }
+        }
+        return true;
+    }
+    //寻找是否有与之匹配的翻转字符串, 如果有返回相应的位置，没有返回-1
+    public int findWord(String word, int left, int right){
+        return indicate.getOrDefault(word.substring(left,right+1),-1);
+    }
+    /**
+     * LeetCode 165, 比较版本号
+     * Level：Medium
+     * 暴力扩容，然后遍历通过regex修饰通过
+     */
+    public int compareVersionTwo(String version1, String version2){
+        String[] version1Block = version1.split("\\.");
+        String[] version2Block = version2.split("\\.");
+        int blockOneLen = version1Block.length;
+        int blockTwoLen = version2Block.length;
+        //将长度对齐
+        if(blockOneLen!=blockTwoLen){
+            int minLen = Math.min(blockOneLen,blockTwoLen);
+            int disLen = Math.abs(blockOneLen-blockTwoLen);
+            if(minLen==blockOneLen){
+                //扩容
+                version1Block = Arrays.copyOf(version1Block,blockOneLen+disLen);
+                for (int i=blockOneLen;i<blockOneLen+disLen;i++){
+                    version1Block[i] = new String("0");
+                }
+            }else{
+                //扩容
+                version2Block = Arrays.copyOf(version2Block,blockTwoLen+disLen);
+                for (int i=blockTwoLen;i<blockTwoLen+disLen;i++){
+                    version2Block[i] = new String("0");
+                }
+            }
+        }
+        //开始对比
+        for(int i=0;i<version1Block.length;i++){
+            int v1 = Integer.parseInt(version1Block[i]);
+            int v2 = Integer.parseInt(version2Block[i]);
+            if(!"0".equals(version1Block[i])){
+                if("".equals(version1Block[i].replaceAll("^(0+)", ""))){
+                    v1 = 0;
+                }else{
+                    v1  = Integer.parseInt(version1Block[i].replaceAll("^(0+)",""));
+                }
+            }
+            if(!"0".equals(version2Block[i])){
+                if("".equals(version2Block[i].replaceAll("^(0+)", ""))){
+                    v2 = 0;
+                }else{
+                    v2 = Integer.parseInt(version2Block[i].replaceAll("^(0+)",""));
+                }
+            }
+            if(v1>v2){
+                return 1;
+            }
+            if(v1<v2){
+                return -1;
+            }
+        }
+        return 0;
+    }
+    /**
+     * LeetCode 165, 比较版本号
+     * Level：Medium
+     * 维护两个指针分别指向每个字符串中的每个chunk
+     */
+    public int compareVersion(String version1, String version2){
+        //双指针，负责遍历时指向每一个字符串的子串
+        int p1 = 0, p2 = 0;
+        int len1 = version1.length(), len2 = version2.length();
+
+        //compare
+        int i1, i2;
+        Pair<Integer, Integer> pair;
+        while(p1<len1 || p2<len2){
+            pair = getNextChunk(version1, len1, p1);
+            i1 = pair.getKey();
+            p1 = pair.getValue();
+
+            pair = getNextChunk(version2,len2,p2);
+            i2 = pair.getKey();
+            p2 = pair.getValue();
+            if(i1!=i2){
+                return i1 > i2? 1:-1;
+            }
+        }
+        return 0;
+    }
+    public Pair<Integer, Integer> getNextChunk(String version, int n, int p){
+        //base case
+        if(p>n-1){
+            return new Pair(0,p);
+        }
+        //find the end of chunk
+        int i, pEnd = p;
+        while (pEnd<n && version.charAt(pEnd)!='.'){
+            ++pEnd;
+        }
+        //取回chunk
+        if(pEnd!=n-1){
+            i = Integer.parseInt(version.substring(p,pEnd));
+        }else{
+            i = Integer.parseInt(version.substring(p,n));
+        }
+        //获取下一个chunk的起始点
+        p = pEnd+1;
+
+        return new Pair(i, p);
+    }
+    /**
+     * LeetCode 100, 相同的树
+     * Level：Easy
+     */
+    public boolean isSameTree(TreeNode p, TreeNode q){
+        if (p==null && q==null){
+            return true;
+        }
+        if(p==null || q==null){
+            return false;
+        }
+        LinkedList<TreeNode> stackP = new LinkedList<>();
+        LinkedList<TreeNode> stackQ = new LinkedList<>();
+        stackP.addFirst(p);
+        stackQ.addFirst(q);
+        while(!stackP.isEmpty() && !stackQ.isEmpty()){
+            TreeNode tempP = stackP.removeFirst();
+            TreeNode tempQ = stackQ.removeFirst();
+
+            if(tempP.val!=tempQ.val){
+                return false;
+            }
+
+            if(tempP.left!=null && tempQ.left!=null){
+                stackP.addFirst(tempP.left);
+                stackQ.addFirst(tempQ.left);
+            }
+            if(tempP.right!=null && tempQ.right!=null){
+                stackP.addFirst(tempP.right);
+                stackQ.addFirst(tempQ.right);
+            }
+        }
+        return true;
     }
 }

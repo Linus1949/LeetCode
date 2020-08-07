@@ -1,53 +1,61 @@
 package solution.demo;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.*;
 
 public class RealSolution {
-    public static List<int[]> houseList;
-//    public static void main(String[] args) {
-//        Scanner sc = new Scanner(System.in);
-//        while (sc.hasNext()) {
-//            int n = sc.nextInt();
-//            int m = sc.nextInt();
-//
-//            int[] coins = new int[n];
-//            for(int i=0;i<n;i++){
-//                coins[i] = sc.nextInt();
-//            }
-//            houseList = new ArrayList<>();
-//            for(int i=0;i<m;i++){
-//                houseList.add(new int[]{sc.nextInt(), sc.nextInt()});
-//            }
-//            houseList.sort(new Comparator<int[]>() {
-//                @Override
-//                public int compare(int[] o1, int[] o2) {
-//                    return o2[0] - o1[0];
+    public static void main(String[] args){
+        Scanner sc = new Scanner(System.in);
+        while(sc.hasNext()){
+            while(sc.hasNext()) {
+                int n = sc.nextInt();
+                double res = 0L;
+                for(int i=1;i<=n;i++){
+                    res += ((1.0/(10*i-5)) - (1.0/10*i));
+                }
+                BigDecimal bigDecimal = new BigDecimal(res);
+                System.out.println(bigDecimal.round(new MathContext(4)));
+//                int n = sc.nextInt();
+//                int m = sc.nextInt();
+//                int count = 0;
+//                int dis = m-n;
+//                for(int i=0;i<=dis;i++){
+//                    String num = String.valueOf(n+i);
+//                    for(int j=0;j<num.length()-1;j++){
+//                        if(isPalindrome(new StringBuffer(num).deleteCharAt(j).toString()) && isPrime(new StringBuffer(num).deleteCharAt(j).toString())){
+//                            count++;
+//                            break;
+//                        }
+//                    }
 //                }
-//            });
-//
-//            //do[i]：在i个人的时候最大舒适值
-//            int[] dp = new int[n+1];
-//            dp[0] = maxConfort(coins[0]);
-//            for(int i=1;i<=n;i++){
-//                dp[i] = dp[i-1] + maxConfort(coins[i]);
-//            }
-//            System.out.println(dp[n]);
-//        }
-//    }
-
-    public static int maxConfort(int coin){
-        int maxConfort = 0;
-        for(int[] house: houseList){
-            if(house[0]==0){
-                continue;
-            }
-            if(coin>=house[1]){
-                maxConfort = house[0];
-                //选择后无效化处理
-                house[0] = 0;
-                break;
+//                System.out.println(count);
             }
         }
-        return maxConfort;
+    }
+    public static boolean isPalindrome(String num){
+        int left = 0, right = num.length()-1;
+        if(right==0){
+            return true;
+        }
+        int len = (right-left+1)/2;
+        for(int i=0;i<len;i++){
+            if(num.charAt(left+i)!=num.charAt(right-i)){
+                return false;
+            }
+        }
+        return true;
+    }
+    public static boolean isPrime(String num){
+        int nums = Integer.parseInt(num);
+        int count = 0;
+        for(int i=1;i<nums;i++){
+            if(nums%i==0){
+                count++;
+            }
+        }
+        return count == 1;
     }
 }
