@@ -1,5 +1,8 @@
 package solution.demo;
+import com.sun.org.apache.xml.internal.security.Init;
 import javafx.util.Pair;
+import sun.reflect.generics.tree.Tree;
+
 import java.util.*;
 
 
@@ -1194,5 +1197,101 @@ public class Solution {
             }
         }
         return true;
+    }
+    /**
+     * 无序数组求中间数
+     * 复杂度: O(n)
+     * 使用快排思想，如果发现得到的index==mid那么刚好满足要求返还
+     */
+    public static double median2(int[] arr){
+        //base case
+        if(arr==null || arr.length==0){
+            return 0;
+        }
+        int left = 0, right = arr.length-1;
+        //标定理论上的中位数位置
+        int midIndex = right >> 1;
+        int index = -1;
+        while (index!=midIndex){
+            index = partition(arr,left,right);
+            //找到的数字太小，中位数一定在右边
+            if(index<midIndex){
+                left = index+1;
+            }else if(index>midIndex){
+                right = index-1;
+            }else{
+                break;
+            }
+        }
+        return arr[index];
+    }
+    public static int partition(int[] arr,int left, int right){
+        if(left>right){
+            return -1;
+        }
+        //标定值
+        int pos = right;
+        right--;
+        while (left<=right){
+            while (left<pos && arr[left]<=arr[pos]){
+                left++;
+            }
+            while (right>pos && arr[right]>=arr[pos]){
+                right--;
+            }
+            if(left>=right){
+                break;
+            }
+            swap(arr,left,right);
+        }
+        swap(arr,left,pos);
+        return left;
+    }
+    public static void swap(int[] arr, int left, int right){
+        int temp = arr[left];
+        arr[left] = arr[right];
+        arr[right] = temp;
+    }
+    /**
+     * LeetCode 99, 恢复二叉树
+     * Level：Hard
+     * 已知二叉树的中序排列应该是升序的，如果错误的交换了两个节点，一定会打破顺序
+     * 当我们找到了这两个节点后进行交换即可
+     */
+    public void recoverTree(TreeNode root){
+        if(root==null){
+            return;
+        }
+        List<TreeNode> nums = new ArrayList<>();
+        //中序排列
+        inOrder(root,nums);
+        //寻找乱序的两个节点
+        TreeNode numOne = null, numTwo = null;
+        for(int i=0;i<nums.size()-1;++i){
+            //因为中序是升序排列的，所以第一个遇到i是第一个乱序数字
+            //第二个乱序数字是i+1
+            if(nums.get(i).val>nums.get(i+1).val){
+                //让numTwo始终获取第二个乱序数字
+                numTwo = nums.get(i+1);
+                //numOne是null说明i是第一个乱序数字
+                if(numOne==null){
+                    numOne = nums.get(i);
+                }
+            }
+        }
+        //交换
+        if (numOne!=null && numTwo!=null){
+            int temp = numOne.val;
+            numOne.val = numTwo.val;
+            numTwo.val = temp;
+        }
+    }
+    public void inOrder(TreeNode node, List<TreeNode> nums){
+        if(node==null){
+            return;
+        }
+        inOrder(node.left,nums);
+        nums.add(node);
+        inOrder(node.right,nums);
     }
 }

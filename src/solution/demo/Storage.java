@@ -4,9 +4,10 @@ import java.util.LinkedList;
 
 /**
  * 生产者消费者模式：使用Object.wait()/notify()方法实现
+ * @author wumengyu
  */
-public class Storge {
-    //载体,
+public class Storage {
+    //载体
     private LinkedList<Object> list = new LinkedList<>();
 
     public void produce(){
@@ -48,20 +49,20 @@ public class Storge {
     }
 }
 
-class Produce implements Runnable{
-    private Storge storge;
+class Producer implements Runnable{
+    private Storage storage;
 
-    public Produce(){};
+    public Producer(){};
 
-    public Produce(Storge storge, String name){
-        this.storge = storge;
+    public Producer(Storage storage){
+        this.storage = storage;
     }
     @Override
     public void run() {
         while (true){
             try {
                 Thread.sleep(1000);
-                storge.produce();
+                storage.produce();
             }catch(InterruptedException e){
                 e.printStackTrace();
             }
@@ -70,19 +71,41 @@ class Produce implements Runnable{
 }
 
 class Consumer implements Runnable{
-    private Storge storge;
+    private Storage storage;
 
     public Consumer(){};
-
+    public Consumer(Storage storage){
+        this.storage = storage;
+    }
     @Override
     public void run() {
         while (true){
             try{
                 Thread.sleep(3000);
-                storge.consume();
+                storage.consume();
             }catch (InterruptedException e){
                 e.printStackTrace();
             }
         }
+    }
+}
+
+class Main{
+    public static void main(String[] args){
+        Storage storage = new Storage();
+        Thread p1 = new Thread(new Producer(storage));
+        Thread p2 = new Thread(new Producer(storage));
+        Thread p3 = new Thread(new Producer(storage));
+
+        Thread c1 = new Thread(new Consumer(storage));
+        Thread c2 = new Thread(new Consumer(storage));
+        Thread c3 = new Thread(new Consumer(storage));
+
+        p1.start();
+        p2.start();
+        p3.start();
+        c1.start();
+        c2.start();
+        c3.start();
     }
 }
