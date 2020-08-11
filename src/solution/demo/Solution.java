@@ -1201,8 +1201,30 @@ public class Solution {
     /**
      * 无序数组求中间数
      * 复杂度: O(n)
-     * 使用快排思想，如果发现得到的index==mid那么刚好满足要求返还
+     * 方法1：使用最小堆，维护一个(n+1)/2的大小，将后半段的元素依次与堆顶对比，小于等于抛弃，大于就替换堆顶，当遍历完这个数组，堆顶就是中位数
+     * 方法2：使用快排思想，如果发现得到的index==mid那么刚好满足要求返还
      */
+    public static double median1(int[] arr){
+        int heapSize = (arr.length+1)/2;
+        PriorityQueue<Integer> minHeap = new PriorityQueue<>();
+        for(int i=0;i<heapSize;i++){
+            minHeap.add(arr[i]);
+        }
+        //遍历对比
+        for(int i=heapSize;i<arr.length;i++){
+            if(arr[i]>minHeap.peek()){
+                minHeap.poll();
+                minHeap.add(arr[i]);
+            }
+        }
+        //中位数取决于数组长度
+        if(arr.length%2==1){
+            return (double)minHeap.peek();
+        }else{
+            return (double)((minHeap.poll()+minHeap.peek())/2.0);
+        }
+    }
+
     public static double median2(int[] arr){
         //base case
         if(arr==null || arr.length==0){
@@ -1293,5 +1315,100 @@ public class Solution {
         inOrder(node.left,nums);
         nums.add(node);
         inOrder(node.right,nums);
+    }
+    /**
+     * LeetCode 235，儿叉搜索树的最近公共祖先
+     * Level: Easy
+     * 遍历二叉树，将所有的父节点与子节点成对保存
+     * 将p的所有父节点装进set,然后q在set里循环查找自己的父节点
+     */
+    public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q){
+        Deque<TreeNode> stack = new ArrayDeque<>();
+        //父子节点配对<子节点，父节点>
+        Map<TreeNode, TreeNode> parent = new HashMap<>();
+        parent.put(root,null);
+        stack.addFirst(root);
+        while(!parent.containsKey(p) || !parent.containsKey(q)){
+            TreeNode node = stack.removeFirst();
+            //left
+            if(node.left!=null){
+                parent.put(node.left,node);
+                stack.addFirst(node.left);
+            }
+            //right
+            if(node.right!=null){
+                parent.put(node.right,node);
+                stack.addFirst(node.right);
+            }
+        }
+        //首先将p的所有parent放在set里
+        Set<TreeNode> parentSet = new HashSet<>();
+        while(p!=null){
+            parentSet.add(p);
+            //p更新为pD的父节点
+            p = parent.get(p);
+        }
+        //寻找p的父节点集合中，哪个也是q的父节点
+        while(!parentSet.contains(q)){
+            parentSet.add(q);
+            q = parent.get(q);
+        }
+        return q;
+    }
+    /**
+     * LeetCode 696, 计数二进制子串
+     * Level：Easy
+     * 我们将连续的0，1统计起来如u,v，去取两个相邻部分的Min(u,v)，这个值就是这两个相邻部分的共享值
+     * 例如[00011], Min(2,3) = 2, 也就是说满足条件的子序列有两种：0011，01
+     */
+    public int countBinarySubstrings(String s){
+        List<Integer> countList = new ArrayList<>();
+        int ptr = 0, len = s.length();
+        while (ptr<len){
+            char prevDigit = s.charAt(ptr);
+            int count = 0;
+            while (ptr<len && s.charAt(ptr)==prevDigit){
+                count++;
+                ptr++;
+            }
+            countList.add(count);
+        }
+        int res = 0;
+        for(int i=1;i<countList.size();i++){
+            res += Math.min(countList.get(i-1),countList.get(i));
+        }
+        return res;
+    }
+    /**
+     * LeetCode 1219, 黄金矿工
+     * Level: Medium
+     * dfs遍历每种路径取最优，因为只能走一次需要进行无效化标注，当路径遍历完之后要重新回复原本值
+     */
+    public int rows1219, cols1219;
+    public int getMaximumGold(int[][] grid){
+        rows1219 = grid.length;
+        if(rows1219==0){return 0;}
+        cols1219 = grid[0].length;
+        int res = Integer.MIN_VALUE;
+        for(int row=0;row<rows1219;row++){
+            for(int col=0;col<cols1219;col++){
+                if(grid[row][col]!=0){
+                    res = Math.max(res, bfs(grid,row,col));
+                }
+            }
+        }
+        return res;
+    }
+    public int bfs(int[][] grid, int row, int col){
+        if(row<0 || row>=rows1219 || col<0 || col>=cols1219 || grid[row][col]==0){
+            return 0;
+        }
+        int gold = grid[row][col];
+        //无效化标注
+        grid[row][col] = 0;
+        int res = Math.max(bfs(grid,row+1,col),Math.max(bfs(grid,row-1,col),Math.max(bfs(grid,row,col+1),bfs(grid,row,col-1))))+gold;
+        //遍历需回复至遍历前状态，保证其他路径不会被干扰
+        grid[row][col] = gold;
+        return res;
     }
 }

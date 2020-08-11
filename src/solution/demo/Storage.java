@@ -8,12 +8,12 @@ import java.util.LinkedList;
  */
 public class Storage {
     //载体
-    private LinkedList<Object> list = new LinkedList<>();
-
+    private final LinkedList<Object> list = new LinkedList<>();
+    //仓库有容量
+    int maxSize = 10;
     public void produce(){
         synchronized (list){
             //capacity
-            int maxSize = 10;
             while(list.size()+1> maxSize){
                 System.out.println("生产者"+ Thread.currentThread().getName()
                         + "仓库已满");

@@ -13,8 +13,9 @@ public class Sort {
          * 测试
          */
         public static void main(String[] args){
-            int[] num = {3,45,78,64,52,11,64,55,99,11,18};
-            System.out.println();
+            int[] nums = {3,45,78,64,52,11,64,55,99,11,18};
+            quickSort(nums,0, nums.length-1);
+            System.out.println(arrayToString(nums,"QuickSort"));
         }
 
         /**
@@ -23,7 +24,7 @@ public class Sort {
          * @param left 数组前指针
          * @param right 数组后指针
          */
-        private static void QuickSort(int[] num, int left, int right){
+        private static void quickSort(int[] num, int left, int right){
             //如果left等于right,既数组里只有一个元素，直接返回
             if(left>=right){
                 return;
@@ -51,9 +52,8 @@ public class Sort {
             }
             num[left] = num[i];
             num[i] = key;
-            count++;
-            QuickSort(num, left, i-1);
-            QuickSort(num,i+1, right);
+            quickSort(num, left, i-1);
+            quickSort(num,i+1, right);
         }
 
         /**
