@@ -1411,4 +1411,57 @@ public class Solution {
         grid[row][col] = gold;
         return res;
     }
+    /**
+     * LeetCode 1138, 字母板上的路径
+     * Level: Medium
+     * 因为字母板是有序的，因此横坐标就是 (curChar-'a')/5, 纵坐标就是 (curChar-'a')%5
+     * 只有z需要特殊处理，上一个字母是z时需要
+     */
+    public char[][] alphabetBoard = new char[][]{{'a','b','c','d','e'},
+            {'f','g','h','i','j'},
+            {'k','l','m','n','o'},
+            {'p','q','r','s','t'},
+            {'u','v','w','x','y'},
+            {'z'}};
+    public String alphabetBoardPath(String target){
+        StringBuffer sb = new StringBuffer();
+        int prevRow = 0, prevCol = 0;
+        for(int i=0;i<target.length();i++){
+            char digit = target.charAt(i);
+            //计算机横纵坐标
+            int row = (digit-'a')/5;
+            int col = (digit-'a')%5;
+            //判断z,需要先向上移动，再左右移动
+            if (prevRow==5){
+                prevRow = rowHelp(sb,prevRow,row);
+                prevCol = colHelp(sb,prevCol,col);
+            }else{
+                prevCol = colHelp(sb,prevCol,col);
+                prevRow = rowHelp(sb,prevRow,row);
+            }
+            //匹配结束后需要 '!'
+            sb.append('!');
+        }
+        return sb.toString();
+    }
+    //判断是否需要上下移动U,D
+    public int rowHelp(StringBuffer sb, int prevRow, int row){
+        if(row!=prevRow){
+            int dis = Math.abs(prevRow-row);
+            while ((dis--)>0){
+                sb.append(row>prevRow? 'D':'U');
+            }
+        }
+        return row;
+    }
+    //判断是否需要左右移动R,L
+    public int colHelp(StringBuffer sb, int prevCol, int col){
+        if(prevCol!=col){
+            int dis = Math.abs(prevCol-col);
+            while ((dis--)>0){
+                sb.append(col>prevCol? 'R':'L');
+            }
+        }
+        return col;
+    }
 }
