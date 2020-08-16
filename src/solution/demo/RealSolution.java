@@ -1,76 +1,84 @@
 package solution.demo;
-import java.util.*;
 
-public class RealSolution {
-    public static HashMap<Character, Character> map = new HashMap<>();
-    public static boolean IsValidExp(String s){
-        if("".equals(s) || s==null){
-            return true;
+import java.util.*;
+import java.util.stream.Collectors;
+
+class WorkflowNode {
+    String nodeId;
+    int timeoutMillis;
+    List<WorkflowNode> nextNodes;
+    boolean initialised;
+
+    public static WorkflowNode load(String value) {
+        // Create head node;
+        Map<String, WorkflowNode> map = new HashMap<>();
+        WorkflowNode head = new WorkflowNode("HEAD", 0, null);
+        map.put(head.nodeId, head);
+
+        for (String nodeValue : value.split("\\|")) {
+            String[] properties = nodeValue.split("\\`");
+            WorkflowNode node = map.get(properties[0]);
+
+            node.timeoutMillis = Integer.parseInt(properties[1]);
+            node.initialised = true;
+
+            // Check next nodes
+            if (properties[2].equals("END")) {
+                continue;
+            }
+            node.nextNodes = Arrays.stream(properties[2].split(","))
+                    .map(p -> new WorkflowNode(p, 0, null))
+                    .collect(Collectors.toList());
+            node.nextNodes.forEach(p -> map.put(p.nodeId, p));
+
+            map.put(node.nodeId, node);
         }
-        if(s.length()==1){
-            return false;
+
+        return head;
+    }
+
+    public WorkflowNode(String nodeId, int timeoutMillis, List<WorkflowNode> nextNodes) {
+        this.nodeId = nodeId;
+        this.timeoutMillis = timeoutMillis;
+        this.nextNodes = nextNodes;
+    }
+
+    public static int maxTime(WorkflowNode head){
+        if(!head.initialised){
+            return -1;
         }
-        map.put(')','(');
-        map.put(']','[');
-        map.put('}','{');
-        Stack<Character> stack = new Stack<>();
-        for(int i=0;i<s.length();i++){
-            char temp = s.charAt(i);
-            if(!map.containsKey(temp)){
-                stack.push(temp);
-            }else{
-                char pair = stack.pop();
-                if(pair!=map.get(temp)){
-                    return false;
+        int maxTime = 0;
+        Stack<WorkflowNode> stack = new Stack<>();
+        stack.push(head);
+        while (!stack.isEmpty()){
+            WorkflowNode temp = stack.pop();
+            if(temp.initialised){
+                if(temp.nextNodes!=null){
+                    for(WorkflowNode node: temp.nextNodes){
+                        node.timeoutMillis += temp.timeoutMillis;
+                        maxTime = Math.max(maxTime, node.timeoutMillis);
+                        stack.push(node);
+                    }
                 }
             }
+            else{
+                return -1;
+            }
         }
-        return stack.isEmpty();
+        return maxTime;
     }
 
-//    public int GetCoinCount (int N){
-//
-//    }
-//    public int track(int remian, int[] coins){
-//        if(remian<0){
-//            return -1;
-//        }
-//        if (remian==0){
-//            return 1;
-//        }
-//        for(int coin:coins){
-//            return track(remian-coin,coins)
-//        }
-//    }
-    public static boolean Game24Points(int[] arr) {
-        return track(arr,0,arr.length-1,0);
-    }
-    public static boolean track(int[] arr, int left, int right, int val){
-        if(left>right){
-            return false;
-        }
-        if(val==24){
-            return true;
-        }
-        boolean res = false;
-        for(int i=left;i<=right;i++){
-            res =   track(arr, left+1,right,val+arr[left]) ||
-                    track(arr, left+1,right,val-arr[left]) ||
-                    track(arr, left+1,right,val*arr[left]) ||
-                    track(arr, left+1,right,val/arr[left]);
-        }
-        return res;
-    }
-    public static void main(String[] args){
-        Scanner sc = new Scanner(System.in);
-        while (sc.hasNext()){
-            int n = sc.nextInt();
-            int[] arr = new int[n];
-            for(int i=0;i<n;i++){
-                arr[i] = sc.nextInt();
+    public static void main(String args[])
+    {
+        Scanner cin = new Scanner(System.in);
+        while (cin.hasNext())
+        {
+            try{
+                WorkflowNode node = WorkflowNode.load(cin.next());
+                System.out.println(WorkflowNode.maxTime(node));
+            }catch (Exception e){
+                System.out.println(-1);
             }
-            boolean res = Game24Points(arr);
-            System.out.println("The 24 is :"+res);
         }
     }
 }

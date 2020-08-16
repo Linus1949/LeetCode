@@ -122,4 +122,24 @@ public class Sort {
             System.out.println("排序结果：" + Arrays.toString(a));
         }
     }
+    /**
+     * 插入排序
+     * 时间复杂度：O(n^2)
+     */
+    public static void insertSort(int[] arr){
+        //待排序的元素
+        int t = 0;
+        //已排序的位置
+        int j = 0;
+        for(int i=1;i< arr.length;i++){
+            //待排序
+            if(arr[i]<arr[i-1]){
+                t = arr[i];
+                for(j=i-1;j>=0 && arr[j]>t;j--){
+                    arr[j+1] = arr[j];
+                }
+                arr[j+1] = t;
+            }
+        }
+    }
 }

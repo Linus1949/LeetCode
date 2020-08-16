@@ -1,7 +1,5 @@
 package solution.demo;
-import com.sun.org.apache.xml.internal.security.Init;
 import javafx.util.Pair;
-import sun.reflect.generics.tree.Tree;
 
 import java.util.*;
 
@@ -1463,5 +1461,95 @@ public class Solution {
             }
         }
         return col;
+    }
+    /**
+     * LeetCod 128, 最长连续序列
+     * Level: Hard
+     * 将所有数字塞进一个set, 去暴力尝试每个数字的x, x+1, x+2, ... ,x+y的存在
+     * 我们可以通过尝试是否存在x-1的前驱数字，如果存在我们可以跳过，因为以x-1起始的子序列一定才是最长的
+     */
+    public int longestConsecutive(int[] nums){
+        Set<Integer> num_set = new HashSet<>();
+        for(int num:nums){
+            num_set.add(num);
+        }
+        int longestStreak = 0;
+        for(int num:nums){
+            //判断是否有前驱数字
+            if(!num_set.contains(num-1)){
+                int currNum = num;
+                int currStreak = 1;
+                while (num_set.contains(currNum+1)){
+                    currNum++;
+                    currStreak++;
+                }
+                longestStreak = Math.max(longestStreak,currStreak);
+            }
+        }
+        return longestStreak;
+    }
+    /**
+     * LeeCode 733, 图像渲染
+     * Level：Easy
+     */
+    public int[][] floodFill(int[][] image, int sr, int sc, int newColor){
+        bfs(image,sr,sc,newColor,image[sr][sc]);
+        return image;
+    }
+    public void bfs(int[][] image, int sr, int sc, int newColor, int prevColor){
+        if(sr<0 || sr>=image.length || sc<0 || sc>=image[0].length || image[sr][sc]!=prevColor || image[sr][sc]==newColor){
+            return;
+        }
+        image[sr][sc] = newColor;
+        bfs(image,sr+1,sc,newColor,prevColor);
+        bfs(image, sr-1,sc,newColor,prevColor);
+        bfs(image,sr,sc+1,newColor,prevColor);
+        bfs(image,sr,sc-1,newColor,prevColor);
+    }
+    /**
+     * LeetCode 3, 无重复字符的最长子串
+     * Level：Medium
+     */
+    public int lengthOfLongestSubstring(String s){
+        int n = s.length();
+        int right = -1;
+        int maxLen = 0;
+        Set<Character> set = new HashSet<>();
+        for(int i=0;i<s.length();i++){
+            if(i!=0){
+                //当左指针不为0时，一定是上一轮的右指针发现了重复元素，所以需要向右移动左指针并移除最左边元素
+                set.remove(s.charAt(i-1));
+            }
+            while (right+1<n && !set.contains(s.charAt(right+1))){
+                //向右移动右指针
+                set.add(s.charAt(right+1));
+                right++;
+            }
+            maxLen = Math.max(maxLen,right-i+1);
+        }
+        return maxLen;
+    }
+    /**
+     * LeetCode 14, 最长公共前缀
+     * Level: Easy
+     */
+    public String longestCommonPrefix(String[] strs){
+        if(strs.length==0){
+            return "";
+        }
+        String prefix = strs[0];
+        for(String str:strs){
+            int index = 0;
+            for(;index<str.length()&&index<prefix.length();index++){
+                if(str.charAt(index)!=prefix.charAt(index)){
+                    break;
+                }
+            }
+            prefix = str.substring(0,index);
+            if(prefix.isEmpty()){
+                return prefix;
+            }
+        }
+        return prefix;
     }
 }
