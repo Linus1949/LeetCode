@@ -1,6 +1,6 @@
 package solution.demo;
-import javafx.util.Pair;
 
+import javafx.util.Pair;
 import java.util.*;
 
 
@@ -1551,5 +1551,320 @@ public class Solution {
             }
         }
         return prefix;
+    }
+    /**
+     * LeetCode 188, 买卖股票的最佳时机IV
+     * Level: Medium
+     * dp[i][k][0/1] 表示第i天第k次交易持有股票或未持有股票状态下的收益
+     * 因为买入卖出操作导致n天最多进行n/2次操作，因此如果k>n/2就相当于没有了交易次数的限制
+     */
+    public int maxProfit(int k, int[] prices){
+        int n = prices.length;
+        //当k大于n/2，相当于对于交易次数没有限制
+        if(k>n/2){
+            return maxProfit_fitK(prices);
+        }
+        int[][][] dp = new int[n][k+1][2];
+        for(int i=0;i<n;i++){
+            for(int j=k;j>=1;j--){
+                //base case
+                if(i==0){
+                    dp[i][j][0] = 0;
+                    dp[i][j][1] = -prices[i];
+                    continue;
+                }
+                //如果当天未持有股票，从上一天未持有股票，或者上一天持有股票卖掉了转移过来,买入的操作不需要之前操作卖出，所以从dp[i-1][j][1]转移
+                dp[i][j][0] = Math.max(dp[i-1][j][0], dp[i-1][j][1]+prices[i]);
+                //如果当天持有股票，从上一天持有股票，或者上一天没持有股票卖出了转移过来，卖出的前提一定是之前的交易买入了股票，所以一定要从dp[i-1][j-1][0]转移
+                dp[i][j][1] = Math.max(dp[i-1][j][1], dp[i-1][j-1][0]-prices[i]);
+            }
+        }
+        return dp[n-1][k][0];
+    }
+    public int maxProfit_fitK(int[] prices){
+        //在开市之前未持有股票状态下，收益为0
+        int dp_i_0 = 0;
+        //在开始之前持有股票状态时不存在的，因此受益为负无穷
+        int dp_i_1 = Integer.MIN_VALUE;
+        for (int price:prices){
+            //当天没有持有股票的状态只能从上一天未持有股票或者持有股票+出售股票这两种状态转移
+            dp_i_0 = Math.max(dp_i_0,dp_i_1+price);
+            //当天持有股票的状态只能从上一天持有股票或者未持有股票+买入股票这两种状态转移
+            dp_i_1 = Math.max(dp_i_1,dp_i_0-price);
+        }
+        return dp_i_0;
+    }
+    /**
+     * LeetCode 23, 合并k个升序链表
+     * Level: Medium
+     * 采取分治的思路，将k个链表最终划分成2个链表merge
+     */
+    public ListNode mergeKLists(ListNode[] lists){
+        int n = lists.length;
+        if(n==0){
+            return null;
+        }
+        //分治
+        while (n>1){
+            int k = (n+1)/2;
+            for(int i=0;i<n/2;i++){
+                lists[i] = mergeTwoList(lists[i],lists[i+k]);
+            }
+            n = k;
+        }
+        return lists[0];
+    }
+    public ListNode mergeTwoList(ListNode h1, ListNode h2){
+        ListNode dummy = new ListNode(0);
+        ListNode head = dummy;
+        while (h1!=null && h2!=null){
+            if(h1.val<h2.val){
+                head.next = h1;
+                h1 = h1.next;
+            }else{
+                head.next = h2;
+                h2 = h2.next;
+            }
+            head = head.next;
+        }
+        if(h1==null){
+            head.next = h2;
+        }
+        if(h2==null){
+            head.next = h1;
+        }
+        return dummy.next;
+    }
+    /**
+     * LeetCode 215, 数组中的第k个最大元素
+     */
+    public int findKthLargest(int[] nums, int k){
+        PriorityQueue<Integer> minHeap = new PriorityQueue<>(k);
+        for (int num : nums) {
+            if (minHeap.size() != k) {
+                minHeap.offer(num);
+                continue;
+            }
+            if (minHeap.peek() < num) {
+                minHeap.poll();
+                minHeap.offer(num);
+            }
+        }
+        return minHeap.peek();
+    }
+    /**
+     * LeetCode 206, 翻转链表
+     * Level：Medium
+     */
+    public ListNode reverseList(ListNode head){
+        ListNode prev = null;
+        while (head!=null){
+            ListNode next = head.next;
+            head.next = prev;
+            prev = head;
+            head = next;
+        }
+        return prev;
+    }
+    /**
+     * LeeCode 146, LRU缓存机制
+     * Level: Medium
+     */
+    class LRUCache{
+        Map<Integer, Node> map;
+        class Node{
+            int key;
+            int value;
+            Node next;
+            Node prev;
+            public Node(int key, int value){
+                this.key = key;
+                this.value = value;
+            }
+        }
+        Node head;
+        Node tail;
+        int capacity, count;
+        public LRUCache(int capacity){
+            map = new HashMap<>();
+            head = new Node(0,0);
+            tail = new Node(0,0);
+            head.prev = null;
+            tail.next = null;
+            head.next = tail;
+            tail.prev = head;
+            this.capacity = capacity;
+            count = 0;
+        }
+
+        public void addHead(Node node){
+            node.next = head.next;
+            head.next.prev = node;
+            node.prev = head;
+            head.next = node;
+        }
+
+        public void deleteNode(Node node){
+            node.prev.next = node.next;
+            node.next.prev = node.prev;
+        }
+
+        public int get(int key){
+            if (map.containsKey(key)){
+                Node node = map.get(key);
+                deleteNode(node);
+                addHead(node);
+                return node.value;
+            }
+            return -1;
+        }
+
+        public void put(int key, int value){
+            //如果已经存在
+            if(map.containsKey(key)){
+                Node node = map.get(key);
+                node.value = value;
+                deleteNode(node);
+                addHead(node);
+            }else{
+                Node node = new Node(key,value);
+                map.put(key,node);
+                //缓存未达到上限
+                if(count<capacity){
+                    addHead(node);
+                    count++;
+                }else{
+                    //向删除再插入
+                    map.remove(tail.prev.key);
+                    deleteNode(tail.prev);
+                    addHead(node);
+                }
+            }
+        }
+    }
+    /**
+     * LeetCode 160, 相交链表
+     * Level: Easy
+     */
+    public ListNode getIntersectionNode(ListNode headA, ListNode headB){
+        int Alen = listLength(headA);
+        int Blen = listLength(headB);
+        int dis = Math.abs(Alen-Blen);
+        ListNode longer = (Alen>Blen)? headA:headB;
+        ListNode shorter = (longer==headA)? headB:headA;
+        for (int i=dis;i>0;i--){
+            longer = longer.next;
+        }
+        while (longer!=null && shorter!=null){
+            if (longer==shorter){
+                return longer;
+            }
+            longer = longer.next;
+            shorter = shorter.next;
+        }
+        return null;
+    }
+    public int listLength(ListNode head){
+        if(head==null){
+            return 0;
+        }
+        int count = 0;
+        while (head!=null){
+            count++;
+            head = head.next;
+        }
+        return count;
+    }
+    /**
+     * LeetCode 15, 三数之和
+     */
+    public List<List<Integer>> threeSum(int[] nums){
+        List<List<Integer>> res = new ArrayList<>();
+        Arrays.sort(nums);
+        for(int i=0;i< nums.length;i++){
+            //如果数字已经大于0，因为后面的数字递增所以一定大于0
+            if(nums[i]>0){
+                break;
+            }
+            //去重
+            if(i>0 && nums[i]==nums[i-1]){
+                continue;
+            }
+            //二分查找
+            int l = i+1;
+            int r = nums.length-1;
+            while (l<r){
+                int sum = nums[i] + nums[l] + nums[r];
+                if(sum==0) {
+                    res.add(Arrays.asList(nums[i], nums[l], nums[r]));
+                    //两指针去重
+                    while (l < r && nums[l] == nums[l + 1]) {
+                        l++;
+                    }
+                    while (l < r && nums[r] == nums[r - 1]) {
+                        r--;
+                    }
+                    l++;
+                    r--;
+                }else if(sum>0){
+                    r--;
+                }else{
+                    l++;
+                }
+            }
+        }
+        return res;
+    }
+    /**
+     * LeetCode 102, 二叉树的层序遍历
+     * Level: Medium
+     */
+    public List<List<Integer>> levelOrder(TreeNode root){
+        List<List<Integer>> res = new ArrayList<>();
+        if(root==null){
+            return res;
+        }
+        LinkedList<TreeNode> queue = new LinkedList<>();
+        queue.add(root);
+        int level = 0;
+        while (!queue.isEmpty()){
+            res.add(new ArrayList<Integer>());
+            int size = queue.size();
+            for(int i=0;i<size;i++){
+                TreeNode node = queue.remove();
+                res.get(level).add(node.val);
+                if(node.left!=null){
+                    queue.add(node.left);
+                }
+                if(node.right!=null){
+                    queue.add(node.right);
+                }
+            }
+            level++;
+        }
+        return res;
+    }
+    /**
+     * LeetCode 199, 二叉树的右视图
+     * Level: Medium
+     */
+    List<Integer> res = new ArrayList<>();
+    public List<Integer> rightSideView(TreeNode root){
+        dfs(root,0);
+        return res;
+    }
+    public void dfs(TreeNode node, int depth){
+        if(node==null){
+            return;
+        }
+        //访问当前节点，再访问右子树，左子树
+
+        //如果当前节点所在深度还没有出现在res里，那么该深度下当前节点就是第一个被访问的节点
+        if(depth==res.size()){
+            res.add(node.val);
+        }
+        depth++;
+        dfs(node.right,depth);
+        dfs(node.left,depth);
     }
 }
