@@ -1,6 +1,8 @@
 package solution.demo;
 
 import javafx.util.Pair;
+import org.omg.PortableInterceptor.INACTIVE;
+
 import java.util.*;
 
 
@@ -1845,8 +1847,45 @@ public class Solution {
         return res;
     }
     /**
+     * LeetCode 103, 二叉树Z形遍历
+     * Level: Medium
+     * 只需要在层序遍历的基础上判断深度奇偶即可
+     */
+    public List<List<Integer>> zigzagLevelOrder(TreeNode root){
+        List<List<Integer>> levels = new ArrayList<>();
+        if(root==null){
+            return levels;
+        }
+        LinkedList<TreeNode> queue = new LinkedList<>();
+        queue.add(root);
+        int level = 0;
+        while (!queue.isEmpty()){
+            int size = queue.size();
+            levels.add(new ArrayList<>());
+            for(int i=0;i<size;i++){
+                TreeNode node = queue.poll();
+                //奇数从头向后插入
+                if(level%2!=0){
+                    levels.get(level).add(0,node.val);
+                } else {
+                    //正常顺序
+                    levels.get(level).add(node.val);
+                }
+                if(node.left!=null){
+                    queue.add(node.left);
+                }
+                if(node.right!=null){
+                    queue.add(node.right);
+                }
+            }
+            level++;
+        }
+        return levels;
+    }
+    /**
      * LeetCode 199, 二叉树的右视图
      * Level: Medium
+     * 右视图优先看到的是右子树，没有右子树看左子树
      */
     List<Integer> res = new ArrayList<>();
     public List<Integer> rightSideView(TreeNode root){
@@ -1866,5 +1905,104 @@ public class Solution {
         depth++;
         dfs(node.right,depth);
         dfs(node.left,depth);
+    }
+    /**
+     * LeetCode 234, 回文链表
+     * Level: Easy
+     * 方法一：使用Stack
+     * 方法二：快慢指针，切割成两个链表，翻转后一个链表
+     */
+    public boolean isPalindromeOne(ListNode head){
+        if(head==null){
+            return true;
+        }
+        int len = getLen(head);
+        int ptr = 1;
+        boolean isOdd = len % 2 != 0;
+        Stack<Integer> stack = new Stack<>();
+        while (head!=null){
+            if(ptr==len/2+1){
+                if(isOdd){
+                    head = head.next;
+                }
+                while (head!=null){
+                    if (head.val!=stack.pop()){
+                        return false;
+                    }
+                    head = head.next;
+                }
+                break;
+            }
+            stack.push(head.val);
+            head = head.next;
+            ptr++;
+        }
+        return true;
+    }
+    public int getLen(ListNode head){
+        int len = 0;
+        while (head!=null){
+            len++;
+            head = head.next;
+        }
+        return len;
+    }
+    public boolean isPalindromeTwo(ListNode head){
+        if(head==null){
+            return true;
+        }
+        ListNode slow = head;
+        ListNode fast = head.next;
+        while (fast!=null && fast.next!=null){
+            slow = slow.next;
+            fast = fast.next.next;
+        }
+        //找到中间节点开始翻转后半段链表
+        ListNode prev = null;
+        while(slow!=null){
+            ListNode next = slow.next;
+            slow.next = prev;
+            prev = slow;
+            slow = next;
+        }
+        ListNode temp = head;
+        while (temp!=null &&  prev!=null){
+            if(temp.val!=prev.val){
+                return false;
+            }
+            temp = temp.next;
+            prev = prev.next;
+        }
+        return true;
+    }
+    /**
+     * LeetCode 670, 最大交换
+     * Level: Medium
+     * 贪心算法，我们将0-9出现的位置保存起来，然后从左向右扫描，优先高位查找满足条件的替换数字
+     */
+    public int maximumSwap(int num){
+        char[] nums = Integer.toString(num).toCharArray();
+        int[] digits = new int[10];
+        //将0-9所出现的位置保存起来
+        for(int i=0;i<nums.length;i++){
+            digits[nums[i]-'0'] = i;
+        }
+        for(int i=0;i<nums.length;i++){
+            //向后找
+            for(int j=i+1;j<nums.length;j++){
+                //从大到小尝试
+                for(int x=9;x>nums[i]-'0';x--){
+                    //既比nums[i]大，index也高，swap
+                    if(digits[x]>i){
+                        char temp = nums[i];
+                        nums[i] = nums[digits[x]];
+                        nums[digits[x]] = temp;
+                        return Integer.parseInt(new String(nums));
+                    }
+                }
+            }
+        }
+        //默认情况，num本身就是最大数字
+        return num;
     }
 }
