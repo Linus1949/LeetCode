@@ -1509,7 +1509,7 @@ public class Solution {
         bfs(image,sr,sc-1,newColor,prevColor);
     }
     /**
-     * LeetCode 3, 无重复字符的最长子串
+     * LeetCode 3, 无重复字符的1子串
      * Level：Medium
      */
     public int lengthOfLongestSubstring(String s){
@@ -2004,5 +2004,91 @@ public class Solution {
         }
         //默认情况，num本身就是最大数字
         return num;
+    }
+    /**
+     * LeetCode 459, 重复的字符串
+     * Level: Medium
+     * 如果字符串s包含重复的子串，那么我就可以通过多次位移和换行与原始字符串匹配
+     * 例如: abcabc -> cabcab -> bcabca -> abcabc, 我么通过s+s构造新的字符串,
+     * s = acd, s+s = acdacd, acd移动的可能: dac, cda,因此我们去除收尾后如果
+     * s+s中含有s那么就表明存在重复子串
+     */
+    public boolean repeatedSubstringPattern(String s) {
+        String str = s+s;
+        return str.substring(1,str.length()-1).contains(s);
+    }
+    /**
+     * LeetCode 621, 任务调度器
+     * Level: Medium
+     * 由于n是固定的，次数越大的任务越需要优先安排，在空闲的时间中安排剩余任务，也就是说我们将每一轮设为n+1个任务
+     */
+    public int leastInterval(char[] tasks, int n){
+        int[] map = new int[26];
+        for(char ch:tasks){
+            map[ch - 'A']++;
+        }
+        int times = 0;
+        //优先次数最多的任务类型
+        Arrays.sort(map);
+        while (map[25]>0){
+            //每个任务周期是n+1
+            int i = 0;
+            while (i<=n){
+                //当最大的任务数为0时，直接退出
+                if(map[25]==0){
+                    break;
+                }
+                //优先从后计算
+                if(i<26 && map[25-i]>0){
+                    map[25-i]--;
+                }
+                i++;
+                times++;
+            }
+            Arrays.sort(map);
+        }
+        return times;
+    }
+    /**
+     * LeetCode 494, 目标和
+     * Level: Medium
+     * 使用01背包思想，对于每一个数字进行+/-操作，dp[i][j]表示从数组的o-i位时，进行+/-的到j的方法数量
+     * dp[i][j] = dp[i-1][j-nums[i]] + dp[i-1][j+nums[i]]
+     */
+    public int findTargetSumWays(int[] nums, int S) {
+        int sum = 0;
+        for(int i=0;i<nums.length;i++){
+            sum += nums[i];
+        }
+        //判断目标和是否超出最大和边界
+        if(Math.abs(S)>Math.abs(sum)){
+            return 0;
+        }
+        //商品类型
+        int len  = nums.length;
+        //背包和范围，因为有+/-两种操作，因此t需要翻两倍
+        int t = sum*2+1;
+        //因此sum实际上表达的是值为0的坐标:
+        //  -sum    0   sum         取值范围
+        //    0    sum   sum+sum    下标范围
+        int[][] dp = new int[len][t];
+        //初始化
+        if(nums[0]==0){
+            //当第一个数字为0时，+/-都能达到sum:0
+            dp[0][sum] = 2;
+        }else{
+            //到达两边的方法各+1
+            dp[0][sum + nums[0]] = 1;
+            dp[0][sum - nums[0]] = 1;4444
+        }
+        for(int i=1;i<len;i++){
+            for(int j=0;j<t;j++){
+                //边界,确保和在背包范围内
+                int l = Math.max((j - nums[i]), 0);
+                int r = (j+nums[i]<t) ? j+nums[i]: 0;
+                dp[i][j] = dp[i-1][l] + dp[i-1][r];
+            }
+        }
+        return dp[len-1][sum+S];
     }
 }
