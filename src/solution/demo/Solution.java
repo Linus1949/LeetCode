@@ -1,7 +1,10 @@
 package solution.demo;
 
+import com.sun.org.apache.bcel.internal.generic.ARETURN;
 import javafx.util.Pair;
+import org.omg.CORBA.INTERNAL;
 import org.omg.PortableInterceptor.INACTIVE;
+import sun.reflect.generics.tree.Tree;
 
 import java.util.*;
 
@@ -2079,7 +2082,7 @@ public class Solution {
         }else{
             //到达两边的方法各+1
             dp[0][sum + nums[0]] = 1;
-            dp[0][sum - nums[0]] = 1;4444
+            dp[0][sum - nums[0]] = 1;
         }
         for(int i=1;i<len;i++){
             for(int j=0;j<t;j++){
@@ -2090,5 +2093,303 @@ public class Solution {
             }
         }
         return dp[len-1][sum+S];
+    }
+    /**
+     * LeetCode 332, 零钱兑换
+     * Level: Medium
+     */
+    public int coinChange(int[] coins, int amount){
+        //base case
+        if(amount==0 || coins.length==0){
+            return -1;
+        }
+        int memo[] = new int[amount+1];
+        memo[0] = 0;
+        //自底而上
+        for(int i=1;i<=amount;i++){
+            //遍历coins
+            int min = Integer.MAX_VALUE;
+            for (int coin : coins) {
+                if (i - coin >= 0 && memo[i - coin] < min) {
+                    min = memo[i - coin] + 1;
+                }
+            }
+            memo[i] = min;
+        }
+        return (memo[amount]==Integer.MAX_VALUE)? -1:memo[amount];
+    }
+    /**
+     * LeetCode 557, 反转字符串中的单词III
+     * Level: Easy
+     */
+    public String reverseWords(String s){
+        String[] strs = s.split("\\s+");
+        StringBuffer sb = new StringBuffer();
+        for(int i=0;i<strs.length;i++){
+            if(i!=strs.length-1){
+                sb.append(new StringBuffer( strs[i]).reverse().toString());
+                sb.append(" ");
+            }else{
+                sb.append(new StringBuffer(strs[i]).reverse().toString());
+            }
+        }
+        return sb.toString();
+    }
+    /**
+     * LeetCode 85, 最大矩形
+     * Level: Hard
+     */
+    public int maximalRectangle(char[][] matrix){
+        if(matrix.length ==0 ){
+            return 0;
+        }
+        int maxArea = 0;
+        int[][] dp = new int[matrix.length][matrix[0].length];
+        for(int i=0;i<matrix.length;i++){
+            for(int j=0;j<matrix[0].length;j++){
+                //更新每一行每一块连续部分的长度
+                if(matrix[i][j] == '1'){
+                    dp[i][j] = j==0? 1: dp[i][j-1]+1;
+
+                    int width = dp[i][j];
+                    //自下而上的遍历寻找最大矩形
+                    for(int k=i;k>=0;k--){
+                        //矩形的宽度取决于最短的那条
+                        width = Math.min(width, dp[k][j]);
+                        maxArea = Math.max(maxArea, width*(i-k+1));
+                    }
+                }
+            }
+        }
+        return maxArea;
+    }
+    /**
+     * LeetCode 26, 删除排序数组中的重复项，不许使用额外空间，空间复杂度o(1)
+     */
+    public int removeDuplicates(int[] nums){
+        if(nums.length==0){
+            return 0;
+        }
+        int l = 1;
+        int r = 1;
+        while (l<nums.length && r<nums.length){
+            while (r+1<nums.length && nums[r]==nums[r-1]){
+                r++;
+            }
+            nums[l++] = nums[r++];
+        }
+        int len = 1;
+        for(int i=1;i<nums.length;i++){
+            if(nums[i]>nums[i-1]){
+                len++;
+            }else{
+                break;
+            }
+        }
+        return len;
+    }
+    /**
+     * LeetCode 841, 钥匙和房间
+     * Level: Medium
+     * BFS即可寻找所有的房间
+     */
+    public boolean canVisitAllRooms(List<List<Integer>> rooms){
+        List<Integer> roomZero = rooms.get(0);
+        List<Integer> visitedRooms = new ArrayList<>(roomZero);
+        visitedRooms.add(0);
+        Queue<Integer> queue = new LinkedList<>(roomZero);
+        while (!queue.isEmpty()){
+            int currRoom = queue.poll();
+            List<Integer> keys = rooms.get(currRoom);
+            for(int key:keys){
+                if(!visitedRooms.contains(key)){
+                    queue.add(key);
+                    visitedRooms.add(key);
+                }
+            }
+        }
+        return rooms.size()==visitedRooms.size();
+    }
+    /**
+     * LeetCode 88, 合并两个有序数组
+     * Level: Easy
+     */
+    public void mergeFronttoEnd(int[] nums1, int m, int[] nums2, int n){
+        //双指针从前向后移动，需要创建一个nums1的复制数组
+        int[] nums1Copy = new int[m];
+        System.arraycopy(nums1,0,nums1Copy,0,m);
+        //初始换双指针
+        int ptrOne = 0, ptrTwo = 0, ptr = 0;
+        while (ptrOne<m && ptrTwo<n){
+            nums1[ptr++] = (nums1Copy[ptrOne]<nums2[ptrTwo])? nums1Copy[ptrOne++]:nums2[ptrTwo++];
+        }
+        //判断是否还有残留元素
+        if(ptrOne<m){
+            System.arraycopy(nums1Copy,ptrOne,nums1,ptrOne+ptrTwo,m+n-ptrOne-ptrTwo);
+        }
+        if(ptrTwo<n){
+            System.arraycopy(nums2,ptrTwo,nums1,ptrOne+ptrTwo,m+n-ptrOne-ptrTwo);
+        }
+    }
+
+    public void mergeEndtoFront(int[] nums1, int m, int[] nums2, int n){
+        //双指针从后向前，和nums1最后的放置指针不需要创建临时数组
+        int ptrOne = m-1, ptrTwo = n-1, ptr = m+n-1;
+        while (ptrOne>=0 && ptrTwo>=0){
+            //后向前比，set更大的数
+            nums1[ptr--] = (nums1[ptrOne]<nums2[ptrTwo])? nums2[ptrTwo--]: nums1[ptrOne--];
+        }
+        //把nums2剩余的数字填充进去
+        System.arraycopy(nums2,0,nums1,0,ptrTwo+1);
+    }
+    /**
+     * LeetCode 486, 预测赢家
+     * Level: Medium
+     * 动态规划，dp[i][j]表示玩家1从数组的i-j中的最大收益，dp[i][i] = nums[i], 从后向前走
+     * dp[i][j] = Math.max(nums[i]-dp[i+1][j], nums[j]-dp[i][j-1])，当gamer1选择了nums[i]，那么就代表gamer2会从i+1,j里选择大解
+     * 如果gamer1选择了nums[j], 那么gamer2就会从i,j-1里选择出最大解
+     * 当玩家1选择nums[i]时，玩家二
+     */
+    public boolean PredictTheWinner(int[] nums){
+        int len = nums.length;
+        int[][] dp = new int[len][len];
+        //i,i区间里只能选择nums[i]
+        for(int i=0;i<len;i++){
+            dp[i][i] = nums[i];
+        }
+        //从后向前遍历
+        for(int i=len-2;i>=0;i--){
+            for(int j=i+1;j<len;j++){
+                dp[i][j] = Math.max(nums[i]-dp[i+1][j], nums[j]-dp[i][j-1]);
+            }
+        }
+        return dp[0][len-1]>=0;
+    }
+    /**
+     *  LeetCode 51, N皇后
+     *  Level: Hard
+     */
+    //记录某一列是否放置了Queen
+    private Set<Integer> col;
+    //Queen的个数
+    private int nQueen;
+    //记录主对角线是否已经有queen了
+    private Set<Integer> main;
+    //记录负对角线是否已经有queen了
+    private  Set<Integer> sub;
+    private List<List<String>> ans;
+
+    public List<List<String>> solveNQueens(int n){
+        ans = new ArrayList<>();
+        if(n==0){
+            return ans;
+        }
+        //设置成员变量
+        nQueen = n;
+        col = new HashSet<>();
+        main = new HashSet<>();
+        sub = new HashSet<>();
+        Deque<Integer> path = new LinkedList<>();
+        dfs(0,path);
+        return ans;
+    }
+    private void dfs(int row, Deque<Integer> path){
+        if(row==nQueen){
+            //dfs已经得到一种结果
+            List<String> board = convert2board(path);
+            ans.add(board);
+            return;
+        }
+        //下标为row的每一列进行遍历
+        for(int i=0;i<nQueen;i++){
+            if(!col.contains(i) && !main.contains(row+i) && !sub.contains(row-i)){
+                path.addLast(i);
+                col.add(i);
+                main.add(row+i);
+                sub.add(row-i);
+
+                dfs(row+1,path);
+                //一条分支深度遍历完需要状态回滚
+                col.remove(i);
+                main.remove(row+i);
+                sub.remove(row-i);
+                path.removeLast();
+            }
+        }
+    }
+    private List<String> convert2board(Deque<Integer> path){
+        List<String> board = new ArrayList<>();
+        for(Integer num: path){
+            StringBuilder row = new StringBuilder();
+            for(int i=0;i<Math.max(0,nQueen);i++) {
+                row.append(",");
+            }
+            row.replace(num,num+1,"Q");
+            board.add(row.toString());
+        }
+        return board;
+    }
+    /**
+     * LeetCode 257, 二叉树的所有路径
+     * Level: Medium
+     */
+    public List<String> binaryTreePaths(TreeNode root){
+        List<String> paths = new ArrayList<>();
+        if(root==null){
+            return paths;
+        }
+        List<Integer> values = new ArrayList<>();
+        backTrack(root,paths,values);
+        return paths;
+    }
+    private void backTrack(TreeNode node, List<String> paths, List<Integer> values){
+        if(node==null){
+            return;
+        }
+        values.add(node.val);
+        if(isLeaf(node)){
+            paths.add(printPath(values));
+        }else{
+            backTrack(node.left,paths,values);
+            backTrack(node.right,paths,values);
+        }
+        values.remove(values.size()-1);
+    }
+    private boolean isLeaf(TreeNode node){
+        return node.left == null && node.right == null;
+    }
+    private String printPath(List<Integer> values){
+        StringBuilder sb = new StringBuilder();
+        for(int i=0;i<values.size();i++){
+            if(i!=values.size()-1){
+                sb.append(values.get(i)).append("->");
+            }else{
+                sb.append(values.get(i));
+            }
+        }
+        return sb.toString();
+    }
+    /**
+     * LeetCode 560, 和为k的子数组
+     * Level: Medium
+     * 前缀和：构建前缀和以实现快速计算区间和
+     * 注意计算区间和时，下标有偏移
+     */
+    public int subarraySum(int[] nums, int k){
+        int n = nums.length;
+        int[] ptrSum = new int[n+1];
+        ptrSum[0] = 0;
+        for(int i=0;i<n;i++){
+            ptrSum[i+1] = ptrSum[i] + nums[i];
+        }
+        int count = 0;
+        for(int left=0;left<n;left++){
+            for(int right=left;right<n;right++){
+                if(ptrSum[right+1]-ptrSum[left]==k){
+                    count++;
+                }
+            }
+        }
+        return count;
     }
 }

@@ -77,12 +77,11 @@ public class Sort {
      * 时间复杂度：O(nlongn)
      */
     public static class MergeSort{
-        public static void merge(int[] arr, int low, int mid, int high){
-            int[] temp = new int[high-low + 1];
+        public static void merge(int[] arr, int[] temp, int low, int mid, int high){
             //左指针
             int i = low;
             //右指针
-            int j = high;
+            int j = mid+1;
             int k= 0;
             //把较小的数移动到新数组中
             while(i<=mid && j<=high){
@@ -101,24 +100,25 @@ public class Sort {
                 temp[k++] = arr[j++];
             }
             //把新数组中的数覆盖num数组
-            for(int k2=0;k2<temp.length;k2++){
+            for(int k2=0;k2<k;k2++){
                 arr[k2+low] = temp[k2];
             }
         }
 
-        public static void mergeSort(int[] arr, int low, int high){
+        public static void mergeSort(int[] arr, int[] temp, int low, int high){
             int mid = (low+high)/2;
             if(low<high){
                 //左边
-                mergeSort(arr, low, mid);
+                mergeSort(arr, temp, low, mid);
                 //右边
-                mergeSort(arr, mid+1, high);
-                System.out.println(Arrays.toString(arr));
+                mergeSort(arr, temp,mid+1, high);
+                merge(arr,temp,low,mid,high);
             }
         }
         public static void main(String[] args) {
-            int a[] = { 51, 46, 20, 18, 65, 97, 82, 30, 77, 50 };
-            mergeSort(a, 0, a.length - 1);
+            int[] a = { 51, 46, 20, 18, 65, 97, 82, 30, 77, 50 };
+            int[] temp = new int[a.length];
+            mergeSort(a, temp,0, a.length - 1);
             System.out.println("排序结果：" + Arrays.toString(a));
         }
     }
