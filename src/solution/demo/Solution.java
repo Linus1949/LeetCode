@@ -2392,4 +2392,87 @@ public class Solution {
         }
         return count;
     }
+    /**
+     * LeetCode 60, 第k个排列
+     * Level: Medium
+     * 回溯搜索算法+剪枝
+     */
+
+    //记录数字是否被使用
+    private boolean[] used;
+    //记录分支下的全排列个数
+    private int[] factorial;
+    private int len;
+    private int kth;
+
+    public String getPermutation(int n, int k){
+        len = n;
+        kth = k;
+        factorial = new int[n+1];
+        factorial[0] = 1;
+        for(int i=1;i<=n;i++){
+            factorial[i] = factorial[i-1]*i;
+        }
+        used = new boolean[n+1];
+        Arrays.fill(used,false);
+        StringBuilder path = new StringBuilder();
+        dfs(0,path);
+        return path.toString();
+    }
+    /**
+     *
+     * @param index 在这一步之前已经选择的数字，其值恰好等于这一步需要确定的下标位置
+     * @param path
+     */
+    private void dfs(int index, StringBuilder path){
+        if(index==len){
+            return;
+        }
+        //记录当前index下全排列的个数
+        int cnt = factorial[len-1-index];
+        for (int i=1;i<=len;i++){
+            if(used[i]){
+                continue;
+            }
+            //当前index下的全排列小于k，说明我们要找那个排列不存在
+            //这个index下的子分支，剪枝跳过
+            if(cnt<kth){
+                kth -= cnt;
+                continue;
+            }
+            path.append(i);
+            used[i] = true;
+            dfs(index+1,path);
+            //当我们确定第k个组合存在于当前index的分支下，之后的index我们也不需要
+            //进行处理，直接跳过
+            return;
+        }
+    }
+    /**
+     * LeetCode 107, 二叉树层序遍历II
+     * Level: Easy
+     */
+    public List<List<Integer>> levelOrderBottom(TreeNode root) {
+        List<List<Integer>> res = new ArrayList<>();
+        if(root==null){
+            return res;
+        }
+        Queue<TreeNode> queue = new LinkedList<>();
+        queue.add(root);
+        while (!queue.isEmpty()){
+            res.add(0,new ArrayList<Integer>());
+            int size = queue.size();
+            for(int i=0;i<size;i++){
+                TreeNode node = queue.poll();
+                res.get(0).add(node.val);
+                if (node.left!=null){
+                    queue.add(node.left);
+                }
+                if(node.right!=null){
+                    queue.add(node.right);
+                }
+            }
+        }
+        return res;
+    }
 }
