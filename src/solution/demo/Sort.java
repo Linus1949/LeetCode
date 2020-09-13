@@ -118,7 +118,8 @@ public class Sort {
         public static void main(String[] args) {
             int[] a = { 51, 46, 20, 18, 65, 97, 82, 30, 77, 50 };
             int[] temp = new int[a.length];
-            mergeSort(a, temp,0, a.length - 1);
+            //mergeSort(a, temp,0, a.length - 1);
+            insertSort(a);
             System.out.println("排序结果：" + Arrays.toString(a));
         }
     }

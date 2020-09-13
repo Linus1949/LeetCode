@@ -6,6 +6,7 @@ import org.omg.CORBA.INTERNAL;
 import org.omg.PortableInterceptor.INACTIVE;
 import sun.reflect.generics.tree.Tree;
 
+import java.math.BigDecimal;
 import java.util.*;
 
 
@@ -1657,6 +1658,41 @@ public class Solution {
         }
         return minHeap.peek();
     }
+    //解法2：使用快排思想，将比中轴p大的元素都放在p左边，比p小的元素都放在p右边
+    //如果 p-low+1 == k 直接返回a[p]，因为左面的都比p大，p干好是第k大的数
+    //如果 p-low+1 > k 说明第k大的数字在左半边，high = p-1;
+    //如果 p-low+1 < k 说明第k大的数字在右半边，low = p+1, k = k - (p-low+1), 因为已经排除前(p-low+1)个大的数字了
+    public int findKth(int[] nums, int n,int k){
+        return findKth(nums,0,n-1,k);
+    }
+    private int findKth(int[] nums, int low, int high, int k){
+        int part = partation(nums,low,high);
+        if(k==part-low+1){
+            return nums[part];
+        }
+        else if(k>part-low+1){
+            return findKth(nums,part+1,high,k-(part-low+1));
+        }else{
+            return findKth(nums,low,part-1,k);
+        }
+    }
+    private int partation(int[] nums,int low, int high){
+        int key = nums[low];
+        while (low<high){
+            while (low<high && nums[high]<=key){
+                high--;
+            }
+            //将右子数组中不合格的元素放到左边不合格元素的位置（原元素已经移走）
+            nums[low] = nums[high];
+            while (low<high && nums[low]>=key){
+                low++;
+            }
+            // 将左子数组中不合格的元素放到左边不合格元素的位置（原元素已经移走）
+            nums[high] = nums[low];
+        }
+        nums[low] = key;
+        return low;
+    }
     /**
      * LeetCode 206, 翻转链表
      * Level：Medium
@@ -2474,5 +2510,158 @@ public class Solution {
             }
         }
         return res;
+    }
+    /**
+     * LeetCode 347, 前k个高频元素
+     * Level: Medium
+     */
+    public int[] topKFrequent(int[] nums, int k){
+        Map<Integer,Integer> map = new HashMap<>();
+        for (int num : nums) {
+            if (!map.containsKey(num)) {
+                map.put(num, 1);
+            } else {
+                map.put(num, map.get(num) + 1);
+            }
+        }
+        PriorityQueue<Integer> priorityQueue = new PriorityQueue<>(new Comparator<Integer>() {
+            @Override
+            public int compare(Integer o1, Integer o2) {
+                return map.get(o2)-map.get(o1);
+            }
+        });
+        priorityQueue.addAll(map.keySet());
+        int[] res = new int[k];
+        for(int i=0;i<k;i++){
+            res[i] = priorityQueue.remove();
+        }
+        return res;
+    }
+    /**
+     * LeetCode 79, 单词搜索
+     * Level: Medium
+     */
+    public boolean exist(char[][] board, String word){
+        int m = board.length;
+        int n = board[0].length;
+        for(int i =0;i<m;i++){
+            for(int j=0;j<n;j++){
+                if (dfs(board,word,0,i,j)){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    private boolean dfs(char[][] board, String word, int i, int x, int y){
+        if(x<0 || x>=board.length || y<0 || y>=board[0].length || board[x][y]!=word.charAt(i)){
+            return false;
+        }
+        if(i==word.length()-1){
+            return true;
+        }
+        char temp = board[x][y];
+        board[x][y] = '#';
+        boolean res = dfs(board,word,i+1,x+1,y)
+                    || dfs(board,word,i+1,x-1,y)
+                    || dfs(board,word,i+1,x,y+1)
+                    || dfs(board,word,i+1,x,y-1);
+        board[x][y] = temp;
+        return res;
+    }
+    /**
+     * LeetCode 77,组合
+     * Level: Medium
+     * 使用回溯+剪枝：题目要求对顺序无要求，因此下一个的分支搜索区间会比上一个区间少一位
+     */
+    public List<List<Integer>> combine(int n, int k){
+        List<List<Integer>> res = new ArrayList<>();
+        if(n<=0 || n<k){
+            return res;
+        }
+        Deque<Integer> path = new ArrayDeque<>();
+        dfs(n,k,1,path,res);
+        return res;
+    }
+    private void dfs(int n, int k, int ptr,Deque<Integer> path, List<List<Integer>> res){
+        if(path.size()==k){
+            res.add(new ArrayList<>(path));
+            return;
+        }
+        //优化剪枝：因为当剩余的元素个数已经小于k时，就无法得到合法的组合
+        // 搜索上界+接下来选择的元素个数-1=n
+        // 搜索上界 = n - (k-path.size()) + 1
+        for(int i=ptr;i<=n-(k-path.size())+1;i++){
+            path.addLast(i);
+            dfs(n,k,i+1,path,res);
+            path.removeLast();
+        }
+    }
+    /**
+     * LeetCode 402, 移掉k位数字
+     * Level: Medium
+     * 思路，我们知道数字的大小是由高位向底位判断的，因此我们首先需要从左向右遍历
+     * 每次遍历和左边的相邻元素进行比较，如果左边的数字更大则移除左边的元素，因此
+     * 需要维护一个单调递增的栈，若当前元素笔栈顶小，则抛弃原栈顶，较小的元素入栈
+     * 如果k有余，因为我们只把大的数字移走了，从后向前删除即可
+     */
+    public String removeKdigits(String num, int k){
+        Deque<Character> deque = new ArrayDeque<>();
+        char[] arr = num.toCharArray();
+        //遍历入栈
+        for(char ch:arr){
+            while (!deque.isEmpty() && k>0 && deque.getLast()>ch){
+                k--;
+                deque.removeLast();
+            }
+            deque.addLast(ch);
+        }
+        //如果k有剩余,从后面大的开始删除
+        while (k-- > 0 && !deque.isEmpty()){
+            deque.removeLast();
+        }
+        //移除头部的0
+        while (!deque.isEmpty() && deque.getFirst()=='0'){
+            deque.removeFirst();
+        }
+        if (deque.isEmpty()){
+            return "0";
+        }
+        //重构
+        StringBuilder sb = new StringBuilder();
+        int size = deque.size();
+        for(int i=0;i<size;i++){
+            sb.append(deque.removeFirst());
+        }
+        return sb.toString();
+    }
+    /**
+     * LeetCode 39, 组合总和
+     * Level: Medium
+     */
+    public List<List<Integer>> combinationSum(int[] candidates, int target){
+        List<List<Integer>> paths = new ArrayList<>();
+        if(candidates.length==0){
+            return paths;
+        }
+        Deque<Integer> path = new ArrayDeque<>();
+        Arrays.sort(candidates);
+        dfs(candidates,0,target,paths,path);
+        return paths;
+    }
+    private void dfs(int[] candidates, int begin,int target, List<List<Integer>> paths, Deque<Integer> path){
+        if(target==0){
+            paths.add(new ArrayList<>(path));
+            return;
+        }
+        for (int i=begin;i<candidates.length;i++) {
+            //当candidates是有序的前提下，如果当前的值都大于剩余值，就可以进行剪枝
+            if (target - candidates[i]<0) {
+                break;
+            }
+            path.addLast(candidates[i]);
+            dfs(candidates, i,target - candidates[i], paths, path);
+            path.removeLast();
+        }
     }
 }
